@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Browser Window Card -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M28,30 h52 c3.3,0 6,2.7 6,6 v36 c0,3.3 -2.7,6 -6,6 h-52 c-3.3,0 -6,-2.7 -6,-6 v-36 c0,-3.3 2.7,-6 6,-6 z" />
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M24,38 h60 v34 c0,2.2 -1.8,4 -4,4 h-52 c-2.2,0 -4,-1.8 -4,-4 z" />
+    <!-- Code brackets: < / > -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,48 L37,55 L44,62 L42,64 L33,55 L42,46 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M64,48 L71,55 L64,62 L66,64 L75,55 L66,46 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M56,45 L50,65 L48,65 L54,45 Z" />
+</vector>
