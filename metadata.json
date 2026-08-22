@@ -1,6 +1,6 @@
 {
-  "name": "டிஎன்பிஏ",
-  "description": "டிஎன்பிஏ - தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கத்தின் அதிகாரப்பூர்வ நிர்வாக டேஷ்போர்டு, உறுப்பினர் பதிவு, நலத்திட்டங்கள், ஓவியக் கண்காட்சி, நேரலை ஒளிபரப்பு மற்றும் செயலி பதிவிறக்க மையம்.",
+  "name": "TNPA",
+  "description": "TNPA - Tamil Nadu Painters and Artists Welfare Association official administration dashboard, member registration, leadership hierarchy, welfare schemes, art gallery, live streaming, and APK download hub.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

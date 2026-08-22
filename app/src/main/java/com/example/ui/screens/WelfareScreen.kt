@@ -188,279 +188,337 @@ fun WelfareScreen() {
     }
   }
 
+  // View Mode: Expanded (Full Display) vs Compact
+  var isExpandedViewMode by remember { mutableStateOf(true) }
+  var isBannerCollapsed by remember { mutableStateOf(false) }
+  var expandedSchemeIds by remember { mutableStateOf(setOf<String>()) }
+
   Column(
     modifier = Modifier
       .fillMaxSize()
       .background(TnpaOffWhite)
   ) {
-    // 1. Header Banner
-    Card(
+    // Single Unified LazyColumn for full-screen display real estate
+    LazyColumn(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 12.dp, vertical = 8.dp),
-      shape = RoundedCornerShape(16.dp),
-      colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
-      border = BorderStroke(1.dp, TnpaRedSoft)
+        .fillMaxSize()
+        .testTag("welfare_schemes_lazy_column"),
+      verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .background(Brush.horizontalGradient(listOf(TnpaRedPrimary, TnpaRedDark, TnpaJetBlack)))
-          .padding(14.dp)
-      ) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                modifier = Modifier
-                  .clip(RoundedCornerShape(4.dp))
-                  .background(TnpaGold)
-                  .padding(horizontal = 6.dp, vertical = 2.dp)
-              ) {
-                Text(
-                  text = "அரசு நலவாரியங்கள்",
-                  color = TnpaJetBlack,
-                  fontSize = 10.sp,
-                  fontWeight = FontWeight.Black
-                )
-              }
-              Spacer(modifier = Modifier.width(6.dp))
-              Text(
-                text = "நேரடி அரசு விண்ணப்பம்",
-                color = TnpaPureWhite.copy(alpha = 0.9f),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold
-              )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-              text = "தொழிலாளர் நலவாரியங்கள் & சமூக பாதுகாப்பு",
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Black,
-              color = TnpaPureWhite
-            )
-            Text(
-              text = "மத்திய அரசு + தமிழ்நாடு அரசு அதிகாரப்பூர்வ நலத்திட்டங்கள் நேரடி இணைப்பு",
-              fontSize = 11.sp,
-              color = Color(0xFFFEE2E2),
-              lineHeight = 15.sp
-            )
-          }
-
-          Box(
-            modifier = Modifier
-              .size(42.dp)
-              .clip(CircleShape)
-              .background(TnpaPureWhite),
-            contentAlignment = Alignment.Center
-          ) {
-            Icon(
-              Icons.Default.AccountBalance,
-              contentDescription = null,
-              tint = TnpaRedPrimary,
-              modifier = Modifier.size(24.dp)
-            )
-          }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        // Zero Fee / Privacy Trust Pill
-        Row(
+      // 1. Top Header Banner (Collapsible to maximize screen space)
+      item {
+        Card(
           modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.Black.copy(alpha = 0.25f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-          verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
+          border = BorderStroke(1.dp, TnpaRedSoft)
         ) {
-          Icon(Icons.Default.Shield, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(14.dp))
-          Spacer(modifier = Modifier.width(6.dp))
-          Text(
-            text = "🔒 100% இலவச நேரடி அரசு போர்டல் இணைப்பு • எந்த கட்டணமும் இல்லை",
-            color = TnpaPureWhite,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .background(Brush.horizontalGradient(listOf(TnpaRedPrimary, TnpaRedDark, TnpaJetBlack)))
+              .padding(if (isBannerCollapsed) 10.dp else 14.dp)
+          ) {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Box(
+                    modifier = Modifier
+                      .clip(RoundedCornerShape(4.dp))
+                      .background(TnpaGold)
+                      .padding(horizontal = 6.dp, vertical = 2.dp)
+                  ) {
+                    Text(
+                      text = "அரசு நலவாரியங்கள்",
+                      color = TnpaJetBlack,
+                      fontSize = 10.sp,
+                      fontWeight = FontWeight.Black
+                    )
+                  }
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Text(
+                    text = "நேரடி அரசு விண்ணப்பம்",
+                    color = TnpaPureWhite.copy(alpha = 0.9f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                  )
+                }
+
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                  text = "தொழிலாளர் நலவாரியங்கள் & சமூக பாதுகாப்பு",
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Black,
+                  color = TnpaPureWhite,
+                  fontSize = if (isBannerCollapsed) 13.sp else 15.sp
+                )
+                if (!isBannerCollapsed) {
+                  Text(
+                    text = "மத்திய அரசு + தமிழ்நாடு அரசு அதிகாரப்பூர்வ நலத்திட்டங்கள் நேரடி இணைப்பு",
+                    fontSize = 11.sp,
+                    color = Color(0xFFFEE2E2),
+                    lineHeight = 15.sp
+                  )
+                }
+              }
+
+              IconButton(
+                onClick = { isBannerCollapsed = !isBannerCollapsed },
+                modifier = Modifier
+                  .size(34.dp)
+                  .clip(CircleShape)
+                  .background(TnpaPureWhite.copy(alpha = 0.2f))
+              ) {
+                Text(
+                  text = if (isBannerCollapsed) "▼" else "▲",
+                  color = TnpaPureWhite,
+                  fontSize = 12.sp,
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
+
+            if (!isBannerCollapsed) {
+              Spacer(modifier = Modifier.height(6.dp))
+              // Zero Fee / Privacy Trust Pill
+              Row(
+                modifier = Modifier
+                  .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Black.copy(alpha = 0.25f))
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+              ) {
+                Icon(Icons.Default.Shield, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                  text = "🔒 நேரடி அரசு போர்டல் இணைப்பு • TNPA அதிகாரப்பூர்வ வழிகாட்டுதல்",
+                  color = TnpaPureWhite,
+                  fontSize = 10.sp,
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Sub-Tabs Navigation
+      item {
+        ScrollableTabRow(
+          selectedTabIndex = selectedSubTab,
+          edgePadding = 10.dp,
+          containerColor = TnpaPureWhite,
+          contentColor = TnpaRedPrimary,
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+        ) {
+          Tab(
+            selected = selectedSubTab == 0,
+            onClick = { selectedSubTab = 0 },
+            text = { Text("அனைத்தும் (${GovtWelfareRepository.schemesList.size})", fontSize = 11.sp, fontWeight = if (selectedSubTab == 0) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_all")
+          )
+          Tab(
+            selected = selectedSubTab == 1,
+            onClick = { selectedSubTab = 1 },
+            text = { Text("மத்திய அரசு", fontSize = 11.sp, fontWeight = if (selectedSubTab == 1) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_central")
+          )
+          Tab(
+            selected = selectedSubTab == 2,
+            onClick = { selectedSubTab = 2 },
+            text = { Text("தமிழ்நாடு அரசு", fontSize = 11.sp, fontWeight = if (selectedSubTab == 2) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_tn")
+          )
+          Tab(
+            selected = selectedSubTab == 3,
+            onClick = {
+              selectedSubTab = 3
+              selectedOccupationFilter = WorkerOccupation.PAINTER
+            },
+            text = { Text("பெயிண்டர்கள்", fontSize = 11.sp, fontWeight = if (selectedSubTab == 3) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.Brush, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_painters")
+          )
+          Tab(
+            selected = selectedSubTab == 4,
+            onClick = {
+              selectedSubTab = 4
+              selectedOccupationFilter = WorkerOccupation.ARTIST
+            },
+            text = { Text("ஓவியர்கள் / Artists", fontSize = 11.sp, fontWeight = if (selectedSubTab == 4) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_artists")
+          )
+          Tab(
+            selected = selectedSubTab == 5,
+            onClick = { selectedSubTab = 5 },
+            text = { Text("எனக்கு என்ன திட்டம்?", fontSize = 11.sp, fontWeight = if (selectedSubTab == 5) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.AutoMirrored.Filled.Help, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_checker")
+          )
+          Tab(
+            selected = selectedSubTab == 6,
+            onClick = { selectedSubTab = 6 },
+            text = { Text("விண்ணப்ப நிலை", fontSize = 11.sp, fontWeight = if (selectedSubTab == 6) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.TrackChanges, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_status")
+          )
+          Tab(
+            selected = selectedSubTab == 7,
+            onClick = { selectedSubTab = 7 },
+            text = { Text("தேவையான ஆவணங்கள்", fontSize = 11.sp, fontWeight = if (selectedSubTab == 7) FontWeight.Black else FontWeight.Normal) },
+            icon = { Icon(Icons.Default.FactCheck, contentDescription = null, modifier = Modifier.size(16.dp)) },
+            modifier = Modifier.testTag("tab_welfare_documents")
           )
         }
       }
-    }
 
-    // 2. Sub-Tabs Navigation (Scrollable)
-    ScrollableTabRow(
-      selectedTabIndex = selectedSubTab,
-      edgePadding = 12.dp,
-      containerColor = TnpaPureWhite,
-      contentColor = TnpaRedPrimary,
-      modifier = Modifier
-        .fillMaxWidth()
-        .border(1.dp, Color(0xFFE2E8F0))
-    ) {
-      Tab(
-        selected = selectedSubTab == 0,
-        onClick = { selectedSubTab = 0 },
-        text = { Text("அனைத்தும் (${GovtWelfareRepository.schemesList.size})", fontSize = 11.sp, fontWeight = if (selectedSubTab == 0) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_all")
-      )
-      Tab(
-        selected = selectedSubTab == 1,
-        onClick = { selectedSubTab = 1 },
-        text = { Text("மத்திய அரசு", fontSize = 11.sp, fontWeight = if (selectedSubTab == 1) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_central")
-      )
-      Tab(
-        selected = selectedSubTab == 2,
-        onClick = { selectedSubTab = 2 },
-        text = { Text("தமிழ்நாடு அரசு", fontSize = 11.sp, fontWeight = if (selectedSubTab == 2) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_tn")
-      )
-      Tab(
-        selected = selectedSubTab == 3,
-        onClick = {
-          selectedSubTab = 3
-          selectedOccupationFilter = WorkerOccupation.PAINTER
-        },
-        text = { Text("பெயிண்டர்கள்", fontSize = 11.sp, fontWeight = if (selectedSubTab == 3) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.Brush, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_painters")
-      )
-      Tab(
-        selected = selectedSubTab == 4,
-        onClick = {
-          selectedSubTab = 4
-          selectedOccupationFilter = WorkerOccupation.ARTIST
-        },
-        text = { Text("ஓவியர்கள் / Artists", fontSize = 11.sp, fontWeight = if (selectedSubTab == 4) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_artists")
-      )
-      Tab(
-        selected = selectedSubTab == 5,
-        onClick = { selectedSubTab = 5 },
-        text = { Text("எனக்கு என்ன திட்டம்?", fontSize = 11.sp, fontWeight = if (selectedSubTab == 5) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.AutoMirrored.Filled.Help, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_checker")
-      )
-      Tab(
-        selected = selectedSubTab == 6,
-        onClick = { selectedSubTab = 6 },
-        text = { Text("விண்ணப்ப நிலை", fontSize = 11.sp, fontWeight = if (selectedSubTab == 6) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.TrackChanges, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_status")
-      )
-      Tab(
-        selected = selectedSubTab == 7,
-        onClick = { selectedSubTab = 7 },
-        text = { Text("தேவையான ஆவணங்கள்", fontSize = 11.sp, fontWeight = if (selectedSubTab == 7) FontWeight.Black else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.FactCheck, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("tab_welfare_documents")
-      )
-    }
-
-    // 3. Dynamic Content Rendering
-    when (selectedSubTab) {
-      0, 1, 2, 3, 4 -> {
-        // Schemes List View with Occupation Filters & Search
-        Column(
-          modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-          // Occupation Filter Chips (Horizontal Scroll)
-          Row(
+      // 3. Main Content Rendering
+      if (selectedSubTab in 0..4) {
+        // Occupation Filter Chips + Search + Display Mode Bar
+        item {
+          Column(
             modifier = Modifier
               .fillMaxWidth()
-              .horizontalScroll(rememberScrollState())
-              .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+              .padding(horizontal = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
           ) {
-            WorkerOccupation.values().forEach { occupation ->
-              val isSelected = selectedOccupationFilter == occupation
-              FilterChip(
-                selected = isSelected,
-                onClick = { selectedOccupationFilter = occupation },
-                label = {
-                  Text(
-                    text = "${occupation.iconTag} ${occupation.labelTamil}",
-                    fontSize = 11.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                  )
-                },
-                colors = FilterChipDefaults.filterChipColors(
-                  selectedContainerColor = TnpaRedPrimary,
-                  selectedLabelColor = TnpaPureWhite,
-                  containerColor = TnpaPureWhite,
-                  labelColor = TnpaJetBlack
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                  enabled = true,
+            // Occupation Filter Chips
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(vertical = 2.dp),
+              horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+              WorkerOccupation.values().forEach { occupation ->
+                val isSelected = selectedOccupationFilter == occupation
+                FilterChip(
                   selected = isSelected,
-                  borderColor = if (isSelected) TnpaRedPrimary else Color(0xFFCBD5E1),
-                  selectedBorderColor = TnpaRedPrimary,
-                  borderWidth = 1.dp
+                  onClick = { selectedOccupationFilter = occupation },
+                  label = {
+                    Text(
+                      text = "${occupation.iconTag} ${occupation.labelTamil}",
+                      fontSize = 11.sp,
+                      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                  },
+                  colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = TnpaRedPrimary,
+                    selectedLabelColor = TnpaPureWhite,
+                    containerColor = TnpaPureWhite,
+                    labelColor = TnpaJetBlack
+                  ),
+                  border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = if (isSelected) TnpaRedPrimary else Color(0xFFCBD5E1),
+                    selectedBorderColor = TnpaRedPrimary,
+                    borderWidth = 1.dp
+                  )
                 )
+              }
+            }
+
+            // Search Bar & Display Mode Toggle
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("திட்டம் / நலவாரியம் / தொகை தேட...", fontSize = 12.sp) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(18.dp)) },
+                trailingIcon = {
+                  if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { searchQuery = "" }) {
+                      Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(16.dp))
+                    }
+                  }
+                },
+                singleLine = true,
+                modifier = Modifier
+                  .weight(1f)
+                  .testTag("input_search_welfare"),
+                shape = RoundedCornerShape(10.dp)
+              )
+
+              // Display Area Mode Toggle Button
+              Button(
+                onClick = { isExpandedViewMode = !isExpandedViewMode },
+                colors = ButtonDefaults.buttonColors(
+                  containerColor = if (isExpandedViewMode) TnpaRedPrimary else TnpaJetBlack
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                  .height(52.dp)
+                  .testTag("btn_toggle_view_mode"),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp)
+              ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                  Icon(
+                    if (isExpandedViewMode) Icons.Default.FactCheck else Icons.Default.Assignment,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = TnpaPureWhite
+                  )
+                  Text(
+                    text = if (isExpandedViewMode) "முழு பார்வை" else "சுருக்க பார்வை",
+                    fontSize = 9.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TnpaPureWhite
+                  )
+                }
+              }
+            }
+
+            // Summary Header with Expand All / Collapse All option
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Text(
+                text = "காட்டப்படும் அரசு திட்டங்கள்: ${displayedSchemes.size}",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Black,
+                color = TnpaJetBlack
+              )
+
+              Text(
+                text = "✨ விரிவான டிஸ்ப்ளே முறையில் உள்ளது",
+                fontSize = 10.5.sp,
+                color = TnpaGreen,
+                fontWeight = FontWeight.Bold
               )
             }
           }
+        }
 
-          // Search Field
-          OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("திட்டம் / நலவாரியம் / உதவித் தொகை தேட...", fontSize = 11.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(18.dp)) },
-            trailingIcon = {
-              if (searchQuery.isNotEmpty()) {
-                IconButton(onClick = { searchQuery = "" }) {
-                  Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(16.dp))
-                }
-              }
-            },
-            singleLine = true,
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(bottom = 6.dp)
-              .testTag("input_search_welfare"),
-            shape = RoundedCornerShape(10.dp)
-          )
-
-          // Summary text
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 4.dp, vertical = 2.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Text(
-              text = "காட்டப்படும் அரசு திட்டங்கள்: ${displayedSchemes.size}",
-              fontSize = 11.sp,
-              fontWeight = FontWeight.Bold,
-              color = TnpaCharcoal
-            )
-
-            Text(
-              text = "📅 ஆகஸ்ட் 2026 சரிபார்க்கப்பட்டது",
-              fontSize = 10.sp,
-              color = TnpaGreen,
-              fontWeight = FontWeight.Bold
-            )
-          }
-
-          Spacer(modifier = Modifier.height(4.dp))
-
-          if (displayedSchemes.isEmpty()) {
+        if (displayedSchemes.isEmpty()) {
+          item {
             Card(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 20.dp),
+                .padding(14.dp),
               shape = RoundedCornerShape(12.dp),
               colors = CardDefaults.cardColors(containerColor = TnpaPureWhite)
             ) {
@@ -494,98 +552,102 @@ fun WelfareScreen() {
                 }
               }
             }
-          } else {
-            LazyColumn(
-              modifier = Modifier.fillMaxSize(),
-              verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-              items(displayedSchemes, key = { it.id }) { scheme ->
-                WelfareSchemeCard(
-                  scheme = scheme,
-                  onApplyClick = {
-                    AdminApprovalRepository.submitWelfareApplication(
-                      schemeId = scheme.id,
-                      schemeTitleTamil = scheme.titleTamil,
-                      govtTypeLabel = scheme.govtType.labelTamil,
-                      memberId = "TNPA-APP-" + (1000..9999).random(),
-                      applicantName = "விண்ணப்பதாரர்",
-                      mobile = "9842100000",
-                      district = "திருச்சிராப்பள்ளி (Tiruchirappalli)",
-                      occupation = scheme.applicableOccupations.firstOrNull()?.labelTamil ?: "பெயிண்டர்",
-                      monthlyIncome = 12000,
-                      officialPortalUrl = scheme.officialApplyUrl,
-                      officialPortalName = scheme.officialPortalName
-                    )
-                    openOfficialGovtUrl(scheme.officialApplyUrl, scheme.officialPortalName)
-                  },
-                  onStatusClick = { openOfficialGovtUrl(scheme.officialStatusUrl, scheme.officialPortalName) },
-                  onShareClick = { shareSchemeDetails(scheme) },
-                  onViewFullDetails = { selectedSchemeForDetail = scheme }
-                )
-              }
-              item {
-                Spacer(modifier = Modifier.height(30.dp))
-              }
+          }
+        } else {
+          items(displayedSchemes, key = { it.id }) { scheme ->
+            val isSchemeExpanded = isExpandedViewMode || expandedSchemeIds.contains(scheme.id)
+            Box(modifier = Modifier.padding(horizontal = 10.dp)) {
+              WelfareSchemeCard(
+                scheme = scheme,
+                isExpanded = isSchemeExpanded,
+                onToggleExpand = {
+                  expandedSchemeIds = if (expandedSchemeIds.contains(scheme.id)) {
+                    expandedSchemeIds - scheme.id
+                  } else {
+                    expandedSchemeIds + scheme.id
+                  }
+                },
+                onApplyClick = {
+                  AdminApprovalRepository.submitWelfareApplication(
+                    schemeId = scheme.id,
+                    schemeTitleTamil = scheme.titleTamil,
+                    govtTypeLabel = scheme.govtType.labelTamil,
+                    memberId = "TNPA-APP-" + (1000..9999).random(),
+                    applicantName = "விண்ணப்பதாரர்",
+                    mobile = "9842100000",
+                    district = "திருச்சிராப்பள்ளி (Tiruchirappalli)",
+                    occupation = scheme.applicableOccupations.firstOrNull()?.labelTamil ?: "பெயிண்டர்",
+                    monthlyIncome = 12000,
+                    officialPortalUrl = scheme.officialApplyUrl,
+                    officialPortalName = scheme.officialPortalName
+                  )
+                  openOfficialGovtUrl(scheme.officialApplyUrl, scheme.officialPortalName)
+                },
+                onStatusClick = { openOfficialGovtUrl(scheme.officialStatusUrl, scheme.officialPortalName) },
+                onShareClick = { shareSchemeDetails(scheme) },
+                onViewFullDetails = { selectedSchemeForDetail = scheme }
+              )
             }
           }
         }
-      }
 
-      5 -> {
-        // Tab 5: Interactive Eligibility Checker ("எனக்கு என்ன திட்டம்?")
-        EligibilityCheckerSection(
-          checkOccupation = checkOccupation,
-          onOccupationChange = { checkOccupation = it },
-          checkAgeText = checkAgeText,
-          onAgeChange = { checkAgeText = it },
-          checkDistrict = checkDistrict,
-          onDistrictChange = { checkDistrict = it },
-          checkIncomeText = checkIncomeText,
-          onIncomeChange = { checkIncomeText = it },
-          checkHasTnCard = checkHasTnCard,
-          onHasTnCardChange = { checkHasTnCard = it },
-          checkHasEShram = checkHasEShram,
-          onHasEShramChange = { checkHasEShram = it },
-          result = eligibilityEvaluationResult,
-          onEvaluate = {
-            val age = checkAgeText.toIntOrNull() ?: 30
-            val income = checkIncomeText.toIntOrNull() ?: 12000
-            eligibilityEvaluationResult = GovtWelfareRepository.evaluateEligibility(
-              occupation = checkOccupation,
-              age = age,
-              monthlyIncome = income,
-              hasTnWelfareCard = checkHasTnCard,
-              hasEShram = checkHasEShram
-            )
-          },
-          onApplyScheme = { scheme ->
-            openOfficialGovtUrl(scheme.officialApplyUrl, scheme.officialPortalName)
-          }
-        )
-      }
-
-      6 -> {
-        // Tab 6: Application Status Tracker & Guide
-        ApplicationStatusTrackerSection(
-          onOpenTnuwwb = {
-            openOfficialGovtUrl("https://tnuwwb.tn.gov.in/portal/", "TNUWWB Portal")
-          },
-          onOpenEShram = {
-            openOfficialGovtUrl("https://register.eshram.gov.in/#/user/self-registration", "e-Shram Portal")
-          },
-          onOpenMaanDhan = {
-            openOfficialGovtUrl("https://maandhan.in/", "PM-SYM Maandhan Portal")
-          }
-        )
-      }
-
-      7 -> {
-        // Tab 7: Documents Checklist & Guidelines
-        DocumentsChecklistSection(
-          onApplyClick = {
-            selectedSubTab = 0
-          }
-        )
+        item {
+          Spacer(modifier = Modifier.height(40.dp))
+        }
+      } else if (selectedSubTab == 5) {
+        item {
+          EligibilityCheckerSection(
+            checkOccupation = checkOccupation,
+            onOccupationChange = { checkOccupation = it },
+            checkAgeText = checkAgeText,
+            onAgeChange = { checkAgeText = it },
+            checkDistrict = checkDistrict,
+            onDistrictChange = { checkDistrict = it },
+            checkIncomeText = checkIncomeText,
+            onIncomeChange = { checkIncomeText = it },
+            checkHasTnCard = checkHasTnCard,
+            onHasTnCardChange = { checkHasTnCard = it },
+            checkHasEShram = checkHasEShram,
+            onHasEShramChange = { checkHasEShram = it },
+            result = eligibilityEvaluationResult,
+            onEvaluate = {
+              val age = checkAgeText.toIntOrNull() ?: 30
+              val income = checkIncomeText.toIntOrNull() ?: 12000
+              eligibilityEvaluationResult = GovtWelfareRepository.evaluateEligibility(
+                occupation = checkOccupation,
+                age = age,
+                monthlyIncome = income,
+                hasTnWelfareCard = checkHasTnCard,
+                hasEShram = checkHasEShram
+              )
+            },
+            onApplyScheme = { scheme ->
+              openOfficialGovtUrl(scheme.officialApplyUrl, scheme.officialPortalName)
+            }
+          )
+        }
+      } else if (selectedSubTab == 6) {
+        item {
+          ApplicationStatusTrackerSection(
+            onOpenTnuwwb = {
+              openOfficialGovtUrl("https://tnuwwb.tn.gov.in/portal/", "TNUWWB Portal")
+            },
+            onOpenEShram = {
+              openOfficialGovtUrl("https://register.eshram.gov.in/#/user/self-registration", "e-Shram Portal")
+            },
+            onOpenMaanDhan = {
+              openOfficialGovtUrl("https://maandhan.in/", "PM-SYM Maandhan Portal")
+            }
+          )
+        }
+      } else if (selectedSubTab == 7) {
+        item {
+          DocumentsChecklistSection(
+            onApplyClick = {
+              selectedSubTab = 0
+            }
+          )
+        }
       }
     }
   }
@@ -792,11 +854,13 @@ fun WelfareScreen() {
 }
 
 // ------------------------------------------------------------------------------------------------
-// COMPONENT 1: Scheme Card
+// COMPONENT 1: Scheme Card (Spacious Large Display with Full Inline Information)
 // ------------------------------------------------------------------------------------------------
 @Composable
 fun WelfareSchemeCard(
   scheme: GovtWelfareScheme,
+  isExpanded: Boolean = true,
+  onToggleExpand: () -> Unit = {},
   onApplyClick: () -> Unit,
   onStatusClick: () -> Unit,
   onShareClick: () -> Unit,
@@ -806,15 +870,16 @@ fun WelfareSchemeCard(
     modifier = Modifier
       .fillMaxWidth()
       .testTag("card_scheme_${scheme.id}"),
-    shape = RoundedCornerShape(14.dp),
+    shape = RoundedCornerShape(16.dp),
     colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
-    border = BorderStroke(1.dp, TnpaRedSoft)
+    border = BorderStroke(1.5.dp, if (scheme.govtType == GovtType.TAMIL_NADU) TnpaRedSoft else Color(0xFFCBD5E1)),
+    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
   ) {
     Column(
-      modifier = Modifier.padding(14.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp)
+      modifier = Modifier.padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-      // Top row: Govt Badge & Tag & Share
+      // Top row: Govt Badge & Tag & Expand Toggle & Share
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -826,147 +891,264 @@ fun WelfareSchemeCard(
         ) {
           Box(
             modifier = Modifier
-              .clip(RoundedCornerShape(4.dp))
+              .clip(RoundedCornerShape(6.dp))
               .background(if (scheme.govtType == GovtType.TAMIL_NADU) TnpaRedPrimary else TnpaNavy)
-              .padding(horizontal = 7.dp, vertical = 2.dp)
+              .padding(horizontal = 8.dp, vertical = 3.dp)
           ) {
             Text(
               text = scheme.govtType.labelTamil,
               color = TnpaPureWhite,
-              fontSize = 9.sp,
+              fontSize = 10.sp,
               fontWeight = FontWeight.Bold
             )
           }
 
           Box(
             modifier = Modifier
-              .clip(RoundedCornerShape(4.dp))
+              .clip(RoundedCornerShape(6.dp))
               .background(Color(0xFFF1F5F9))
-              .padding(horizontal = 6.dp, vertical = 2.dp)
+              .padding(horizontal = 8.dp, vertical = 3.dp)
           ) {
             Text(
               text = scheme.tag,
               color = TnpaCharcoal,
-              fontSize = 9.sp,
+              fontSize = 10.sp,
               fontWeight = FontWeight.SemiBold
             )
           }
         }
 
-        IconButton(
-          onClick = onShareClick,
-          modifier = Modifier.size(24.dp)
-        ) {
-          Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Gray, modifier = Modifier.size(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          IconButton(
+            onClick = onShareClick,
+            modifier = Modifier.size(30.dp)
+          ) {
+            Icon(Icons.Default.Share, contentDescription = "Share", tint = TnpaRedDark, modifier = Modifier.size(18.dp))
+          }
+          IconButton(
+            onClick = onToggleExpand,
+            modifier = Modifier.size(30.dp)
+          ) {
+            Text(
+              text = if (isExpanded) "▲" else "▼",
+              color = TnpaCharcoal,
+              fontSize = 13.sp,
+              fontWeight = FontWeight.Bold
+            )
+          }
         }
       }
 
-      // Title
+      // Scheme Large Title
       Text(
         text = scheme.titleTamil,
-        style = MaterialTheme.typography.titleSmall,
+        style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Black,
-        color = TnpaJetBlack
+        color = TnpaJetBlack,
+        fontSize = 15.sp,
+        lineHeight = 20.sp
       )
 
       Text(
-        text = scheme.boardDepartment,
-        fontSize = 11.sp,
+        text = "🏛️ ${scheme.boardDepartment}",
+        fontSize = 11.5.sp,
         color = TnpaRedDark,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
       )
 
-      // Key highlight amount box
+      // Key highlight amount box (Large Golden Card)
       Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
-        border = BorderStroke(1.dp, TnpaGold)
+        border = BorderStroke(1.2.dp, TnpaGold)
       ) {
         Row(
           modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.SpaceBetween
         ) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-              text = scheme.highlightAmount,
-              color = TnpaJetBlack,
-              fontSize = 11.sp,
-              fontWeight = FontWeight.Black
-            )
+          Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+            Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(22.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+              Text(
+                text = "முக்கிய அரசு உதவித் தொகை:",
+                fontSize = 9.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TnpaCharcoal
+              )
+              Text(
+                text = scheme.highlightAmount,
+                color = TnpaJetBlack,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Black
+              )
+            }
           }
 
-          Text(
-            text = if (scheme.isFeeFree) "இலவசம்" else "அரசு கட்டணம்",
-            color = if (scheme.isFeeFree) TnpaGreen else TnpaRedDark,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold
-          )
+          Box(
+            modifier = Modifier
+              .clip(RoundedCornerShape(6.dp))
+              .background(if (scheme.isFeeFree) TnpaGreen.copy(alpha = 0.15f) else TnpaRedSoft)
+              .padding(horizontal = 8.dp, vertical = 4.dp)
+          ) {
+            Text(
+              text = if (scheme.isFeeFree) "இலவச அரசு திட்டம்" else "அரசு கட்டணம்",
+              color = if (scheme.isFeeFree) TnpaGreen else TnpaRedDark,
+              fontSize = 10.sp,
+              fontWeight = FontWeight.Bold
+            )
+          }
         }
       }
 
       Text(
         text = scheme.shortDescription,
-        fontSize = 11.sp,
+        fontSize = 12.sp,
         color = TnpaCharcoal,
-        lineHeight = 16.sp
+        lineHeight = 17.sp
       )
 
-      // Quick Eligibility Pills
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-      ) {
-        Box(
-          modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFFF8FAFC))
-            .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(4.dp))
-            .padding(horizontal = 6.dp, vertical = 3.dp)
+      // Expanded Details View (Displaying Full Information on Screen)
+      if (isExpanded) {
+        // Verified Benefits List
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(10.dp),
+          colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+          border = BorderStroke(1.dp, Color(0xFFBBF7D0))
         ) {
-          Text(text = "🎂 ${scheme.ageRange}", fontSize = 9.sp, color = TnpaCharcoal, fontWeight = FontWeight.SemiBold)
+          Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(Icons.Default.CheckCircle, contentDescription = null, tint = TnpaGreen, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(6.dp))
+              Text(
+                text = "🎁 அரசு வழங்கும் உறுதிப்படுத்தப்பட்ட பலன்கள்:",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = TnpaGreen
+              )
+            }
+            scheme.verifiedBenefits.forEach { benefit ->
+              Text(
+                text = "• $benefit",
+                fontSize = 11.5.sp,
+                color = TnpaJetBlack,
+                lineHeight = 16.sp
+              )
+            }
+          }
         }
 
-        Box(
-          modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFFF8FAFC))
-            .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(4.dp))
-            .padding(horizontal = 6.dp, vertical = 3.dp)
+        // Eligibility Criteria
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-          Text(text = "🆔 ${scheme.requiredRegistration}", fontSize = 9.sp, color = TnpaCharcoal, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          Box(
+            modifier = Modifier
+              .weight(1f)
+              .clip(RoundedCornerShape(6.dp))
+              .background(Color(0xFFF8FAFC))
+              .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(6.dp))
+              .padding(horizontal = 8.dp, vertical = 6.dp)
+          ) {
+            Column {
+              Text(text = "🎂 வயது வரம்பு", fontSize = 9.sp, color = TnpaCharcoal, fontWeight = FontWeight.Bold)
+              Text(text = scheme.ageRange, fontSize = 11.sp, color = TnpaJetBlack, fontWeight = FontWeight.Black)
+            }
+          }
+
+          Box(
+            modifier = Modifier
+              .weight(1.2f)
+              .clip(RoundedCornerShape(6.dp))
+              .background(Color(0xFFF8FAFC))
+              .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(6.dp))
+              .padding(horizontal = 8.dp, vertical = 6.dp)
+          ) {
+            Column {
+              Text(text = "🆔 பதிவு தகுதி", fontSize = 9.sp, color = TnpaCharcoal, fontWeight = FontWeight.Bold)
+              Text(text = scheme.requiredRegistration, fontSize = 10.5.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+          }
+        }
+
+        // Required Documents Section
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(8.dp),
+          colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+          border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+        ) {
+          Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("📑 தேவையான ஆவணங்கள்:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TnpaJetBlack)
+            scheme.requiredDocuments.take(3).forEach { doc ->
+              Text("✔️ $doc", fontSize = 10.5.sp, color = TnpaCharcoal)
+            }
+            if (scheme.requiredDocuments.size > 3) {
+              Text("... மற்றும் பிற ஆவணங்கள்", fontSize = 10.sp, color = Color.Gray)
+            }
+          }
+        }
+      } else {
+        // Quick Eligibility Pills for compact mode
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Box(
+            modifier = Modifier
+              .clip(RoundedCornerShape(4.dp))
+              .background(Color(0xFFF8FAFC))
+              .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(4.dp))
+              .padding(horizontal = 6.dp, vertical = 3.dp)
+          ) {
+            Text(text = "🎂 ${scheme.ageRange}", fontSize = 9.5.sp, color = TnpaCharcoal, fontWeight = FontWeight.SemiBold)
+          }
+
+          Box(
+            modifier = Modifier
+              .clip(RoundedCornerShape(4.dp))
+              .background(Color(0xFFF8FAFC))
+              .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(4.dp))
+              .padding(horizontal = 6.dp, vertical = 3.dp)
+          ) {
+            Text(text = "🆔 ${scheme.requiredRegistration}", fontSize = 9.5.sp, color = TnpaCharcoal, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          }
         }
       }
 
       HorizontalDivider(color = Color(0xFFF1F5F9))
 
-      // Action Buttons Row: Official Apply Now, Status, Details
+      // Action Buttons Row: Official Direct Apply, Status, Details
       Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
         // Direct Official Apply Button
         Button(
           onClick = onApplyClick,
           modifier = Modifier
-            .weight(1.3f)
-            .height(38.dp)
+            .weight(1.4f)
+            .height(42.dp)
             .testTag("btn_apply_${scheme.id}"),
           colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
-          shape = RoundedCornerShape(8.dp),
-          contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+          shape = RoundedCornerShape(10.dp),
+          contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp)
         ) {
-          Icon(Icons.Default.Launch, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(14.dp))
-          Spacer(modifier = Modifier.width(4.dp))
+          Icon(Icons.Default.Launch, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(16.dp))
+          Spacer(modifier = Modifier.width(6.dp))
           Text(
-            text = "விண்ணப்பிக்கவும் (Apply)",
-            fontSize = 11.sp,
+            text = "விண்ணப்பிக்க (Apply)",
+            fontSize = 11.5.sp,
             fontWeight = FontWeight.Bold,
             color = TnpaPureWhite
           )
@@ -977,14 +1159,14 @@ fun WelfareSchemeCard(
           onClick = onStatusClick,
           modifier = Modifier
             .weight(1f)
-            .height(38.dp)
+            .height(42.dp)
             .testTag("btn_status_${scheme.id}"),
-          shape = RoundedCornerShape(8.dp),
-          contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
+          shape = RoundedCornerShape(10.dp),
+          contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
         ) {
           Text(
             text = "நிலை (Status)",
-            fontSize = 10.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = TnpaJetBlack
           )
@@ -993,9 +1175,9 @@ fun WelfareSchemeCard(
         // View Full Details Link
         TextButton(
           onClick = onViewFullDetails,
-          modifier = Modifier.height(38.dp)
+          modifier = Modifier.height(42.dp)
         ) {
-          Text("விவரம் >", fontSize = 11.sp, color = TnpaRedDark, fontWeight = FontWeight.Bold)
+          Text("விவரம் >", fontSize = 11.5.sp, color = TnpaRedDark, fontWeight = FontWeight.Bold)
         }
       }
 
@@ -1007,14 +1189,14 @@ fun WelfareSchemeCard(
       ) {
         Text(
           text = "அரசு தளம்: ${scheme.officialPortalName}",
-          fontSize = 9.sp,
+          fontSize = 9.5.sp,
           color = Color.Gray,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis
         )
         Text(
           text = "சரிபார்க்கப்பட்டது: ${scheme.lastVerifiedDate}",
-          fontSize = 9.sp,
+          fontSize = 9.5.sp,
           color = TnpaGreen,
           fontWeight = FontWeight.Bold
         )

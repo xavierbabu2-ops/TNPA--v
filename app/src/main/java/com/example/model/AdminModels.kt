@@ -294,3 +294,12 @@ object AdminSecurityUtils {
     return "$prefix-ADM-$randomSegment1-$randomSegment2"
   }
 }
+
+data class DistrictSeedData(
+  val username: String,
+  val fullName: String,
+  val designation: String,
+  val district: String,
+  val mobile: String,
+  val passkey: String
+)

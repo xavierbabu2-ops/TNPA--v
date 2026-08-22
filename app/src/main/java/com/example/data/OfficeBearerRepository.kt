@@ -268,6 +268,44 @@ object OfficeBearerRepository {
   }
 
   // ==========================================================================
+  // UPDATE BEARER PHOTO (UPLOAD / CHANGE PHOTO)
+  // ==========================================================================
+  fun updateBearerPhoto(
+    bearerId: String,
+    newPhotoUri: String,
+    adminName: String,
+    adminRole: AdminRole,
+    adminDistrict: String? = null
+  ): Result<String> {
+    val currentList = _bearers.value
+    val bearer = currentList.find { it.id == bearerId }
+      ?: return Result.failure(NoSuchElementException("பொறுப்பாளர் விவரம் கிடைக்கவில்லை."))
+
+    val auth = checkPermission(adminRole, adminDistrict, bearer.level, bearer.district)
+    if (!auth.allowed) {
+      return Result.failure(SecurityException(auth.message))
+    }
+
+    val updated = bearer.copy(photoUrl = newPhotoUri)
+    _bearers.value = currentList.map { if (it.id == bearerId) updated else it }
+
+    val log = AppointmentAuditLog(
+      positionName = bearer.designation,
+      level = bearer.level,
+      jurisdiction = getJurisdictionLabel(bearer),
+      previousBearerName = "${bearer.tamilName} (${bearer.fullName})",
+      newBearerName = "புகைப்படம் மாற்றப்பட்டது",
+      changedByAdmin = adminName,
+      adminRole = adminRole.labelEnglish,
+      actionType = "புகைப்பட மாற்றம் (Photo Update)",
+      reason = "நிர்வாகப் புகைப்படப் பதிவேற்றம்"
+    )
+    _auditLogs.value = listOf(log) + _auditLogs.value
+
+    return Result.success("பொறுப்பாளர் '${bearer.tamilName}' புகைப்படம் வெற்றிகரமாக மாற்றப்பட்டது.")
+  }
+
+  // ==========================================================================
   // TOGGLE STATUS (ACTIVE / INACTIVE)
   // ==========================================================================
   fun toggleStatus(

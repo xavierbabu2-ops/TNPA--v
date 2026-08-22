@@ -20,8 +20,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -135,6 +143,8 @@ fun LeadershipContactScreen() {
   var showAddDialog by remember { mutableStateOf(false) }
   var showTransferDialog by remember { mutableStateOf(false) }
   var bearerToTransfer by remember { mutableStateOf<HierarchyOfficeBearer?>(null) }
+  var showUpdatePhotoDialog by remember { mutableStateOf(false) }
+  var bearerToUpdatePhoto by remember { mutableStateOf<HierarchyOfficeBearer?>(null) }
   var showAuditLogsDialog by remember { mutableStateOf(false) }
   var showDistrictHierarchyDialog by remember { mutableStateOf(false) }
   var isSyncingFirestore by remember { mutableStateOf(false) }
@@ -549,6 +559,10 @@ fun LeadershipContactScreen() {
                 }
               }
             },
+            onUpdatePhotoClick = {
+              bearerToUpdatePhoto = bearer
+              showUpdatePhotoDialog = true
+            },
             onTransferClick = {
               bearerToTransfer = bearer
               showTransferDialog = true
@@ -649,7 +663,39 @@ fun LeadershipContactScreen() {
   }
 
   // ==========================================================================
-  // 7. AUDIT & APPOINTMENT HISTORY DIALOG
+  // 7. UPDATE BEARER PHOTO DIALOG
+  // ==========================================================================
+  if (showUpdatePhotoDialog && bearerToUpdatePhoto != null) {
+    UpdateBearerPhotoDialog(
+      bearer = bearerToUpdatePhoto!!,
+      currentAdminRole = currentAdminRole,
+      currentAdminDistrict = currentAdminDistrict,
+      currentAdminName = currentAdminName,
+      onDismiss = {
+        showUpdatePhotoDialog = false
+        bearerToUpdatePhoto = null
+      },
+      onPhotoUpdated = { newPhotoUri ->
+        val result = OfficeBearerRepository.updateBearerPhoto(
+          bearerId = bearerToUpdatePhoto!!.id,
+          newPhotoUri = newPhotoUri,
+          adminName = currentAdminName,
+          adminRole = currentAdminRole,
+          adminDistrict = currentAdminDistrict
+        )
+        result.onSuccess { msg ->
+          Toast.makeText(context, "✅ $msg", Toast.LENGTH_SHORT).show()
+          showUpdatePhotoDialog = false
+          bearerToUpdatePhoto = null
+        }.onFailure { err ->
+          Toast.makeText(context, "❌ ${err.message}", Toast.LENGTH_LONG).show()
+        }
+      }
+    )
+  }
+
+  // ==========================================================================
+  // 8. AUDIT & APPOINTMENT HISTORY DIALOG
   // ==========================================================================
   if (showAuditLogsDialog) {
     AuditLogsDialog(
@@ -667,6 +713,7 @@ fun OfficeBearerCard(
   bearer: HierarchyOfficeBearer,
   onCallClick: (String) -> Unit,
   onWhatsAppClick: (String) -> Unit,
+  onUpdatePhotoClick: () -> Unit,
   onTransferClick: () -> Unit,
   onToggleStatusClick: () -> Unit,
   onDeleteClick: () -> Unit
@@ -675,7 +722,7 @@ fun OfficeBearerCard(
     modifier = Modifier.fillMaxWidth(),
     shape = RoundedCornerShape(14.dp),
     colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
-    border = androidx.compose.foundation.BorderStroke(
+    border = BorderStroke(
       width = if (bearer.isActive) 1.5.dp else 1.dp,
       color = if (bearer.isActive) TnpaRedSoft else Color(0xFFE2E8F0)
     ),
@@ -687,7 +734,7 @@ fun OfficeBearerCard(
         .padding(12.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-      // Header: Avatar, Name, Designation & Status
+      // Header: Avatar with photo edit trigger, Name, Designation & Status
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -695,20 +742,41 @@ fun OfficeBearerCard(
       ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
           // Leader Profile Photo with Laurel Ring & Tap to Enlarge Badge Modal
-          LeaderProfilePhotoView(
-            photoUrl = bearer.photoUrl,
-            fullName = bearer.fullName,
-            tamilName = bearer.tamilName,
-            designation = bearer.designation,
-            level = bearer.level,
-            district = bearer.district,
-            mobile = bearer.mobile,
-            size = 54.dp,
-            isTopLeader = bearer.level == AdminHierarchyLevel.STATE,
-            enableEnlargeOnClick = true
-          )
+          Box(contentAlignment = Alignment.BottomEnd) {
+            LeaderProfilePhotoView(
+              photoUrl = bearer.photoUrl,
+              fullName = bearer.fullName,
+              tamilName = bearer.tamilName,
+              designation = bearer.designation,
+              level = bearer.level,
+              district = bearer.district,
+              mobile = bearer.mobile,
+              size = 54.dp,
+              isTopLeader = bearer.level == AdminHierarchyLevel.STATE,
+              enableEnlargeOnClick = true
+            )
 
-          Spacer(modifier = Modifier.width(10.dp))
+            // Small quick photo edit badge overlay on avatar
+            Box(
+              modifier = Modifier
+                .offset(x = 4.dp, y = 4.dp)
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(TnpaRedPrimary)
+                .border(1.5.dp, TnpaPureWhite, CircleShape)
+                .clickable { onUpdatePhotoClick() },
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                Icons.Default.CameraAlt,
+                contentDescription = "புகைப்படம் மாற்றுக",
+                tint = TnpaPureWhite,
+                modifier = Modifier.size(12.dp)
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.width(12.dp))
 
           Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -825,7 +893,7 @@ fun OfficeBearerCard(
               onClick = { onCallClick(bearer.mobile) },
               shape = RoundedCornerShape(8.dp),
               colors = ButtonDefaults.buttonColors(containerColor = TnpaGreen),
-              contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+              contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
               modifier = Modifier.height(34.dp)
             ) {
               Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(14.dp))
@@ -836,7 +904,7 @@ fun OfficeBearerCard(
             OutlinedButton(
               onClick = { onWhatsAppClick(bearer.mobile) },
               shape = RoundedCornerShape(8.dp),
-              contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+              contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
               modifier = Modifier.height(34.dp)
             ) {
               Text("💬 WhatsApp", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF166534))
@@ -844,8 +912,15 @@ fun OfficeBearerCard(
           }
         }
 
-        // Admin Actions (Transfer, Status, Delete)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        // Admin Actions (Photo Upload, Transfer, Status, Delete)
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+          IconButton(
+            onClick = onUpdatePhotoClick,
+            modifier = Modifier.size(32.dp)
+          ) {
+            Icon(Icons.Default.AddPhotoAlternate, contentDescription = "புகைப்படம் பதிவேற்றம்", tint = TnpaGold, modifier = Modifier.size(18.dp))
+          }
+
           IconButton(
             onClick = onTransferClick,
             modifier = Modifier.size(32.dp)
@@ -878,7 +953,7 @@ fun OfficeBearerCard(
 }
 
 // ============================================================================
-// ADD OFFICE BEARER DIALOG
+// ADD OFFICE BEARER DIALOG WITH PHOTO UPLOAD
 // ============================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -904,6 +979,15 @@ fun AddOfficeBearerDialog(
   var photoUrl by remember { mutableStateOf("") }
   var appointmentReason by remember { mutableStateOf("சங்க விதிகளின்படி புதிய பொறுப்பாளர் நியமனம்") }
 
+  // Photo Picker Launcher for device gallery
+  val photoPickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    uri?.let {
+      photoUrl = it.toString()
+    }
+  }
+
   // Designation suggestions based on level
   val designationSuggestions = when (level) {
     AdminHierarchyLevel.STATE -> TamilNaduMasterData.STATE_POSTS
@@ -928,8 +1012,106 @@ fun AddOfficeBearerDialog(
         modifier = Modifier
           .fillMaxWidth()
           .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
       ) {
+        // -------------------------------------------------------------
+        // PHOTO SELECTION & UPLOAD SECTION (TOP PROMINENT CARD)
+        // -------------------------------------------------------------
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(12.dp),
+          colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+          border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+        ) {
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
+            Text(
+              text = "📸 பொறுப்பாளர் புகைப்படம் (Photo Upload)",
+              fontSize = 12.sp,
+              fontWeight = FontWeight.Bold,
+              color = TnpaJetBlack
+            )
+
+            // Center Photo Preview
+            LeaderProfilePhotoView(
+              photoUrl = photoUrl,
+              fullName = fullName.ifBlank { "New Leader" },
+              tamilName = tamilName.ifBlank { "புதிய பொறுப்பாளர்" },
+              designation = designation.ifBlank { "பொறுப்பாளர்" },
+              level = level,
+              size = 64.dp,
+              enableEnlargeOnClick = false
+            )
+
+            // Action Buttons: Device Gallery Picker
+            Button(
+              onClick = { photoPickerLauncher.launch("image/*") },
+              shape = RoundedCornerShape(8.dp),
+              colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+              modifier = Modifier.fillMaxWidth()
+            ) {
+              Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(6.dp))
+              Text("கேலரியிலிருந்து படம் தேர்வு செய்", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+
+            // Presets
+            Text("அல்லது நிலையான படங்களை தேர்வு செய்க:", fontSize = 10.sp, color = Color.Gray)
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+              horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+              Button(
+                onClick = { photoUrl = LeaderPhotoAssets.DISTRICT_PRESIDENT_DEFAULT },
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.height(30.dp)
+              ) {
+                Text("தலைவர் படம்", fontSize = 10.sp, color = TnpaJetBlack)
+              }
+
+              Button(
+                onClick = { photoUrl = LeaderPhotoAssets.DISTRICT_SECRETARY_DEFAULT },
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.height(30.dp)
+              ) {
+                Text("செயலாளர் படம்", fontSize = 10.sp, color = TnpaJetBlack)
+              }
+
+              Button(
+                onClick = { photoUrl = LeaderPhotoAssets.YOUTH_WING_DEFAULT },
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.height(30.dp)
+              ) {
+                Text("இளைஞரணி படம்", fontSize = 10.sp, color = TnpaJetBlack)
+              }
+            }
+
+            // Web URL option
+            OutlinedTextField(
+              value = photoUrl,
+              onValueChange = { photoUrl = it },
+              label = { Text("புகைப்பட URL (Web Link / Path)") },
+              placeholder = { Text("https://... அல்லது Uri") },
+              leadingIcon = { Icon(Icons.Default.Link, contentDescription = null, tint = TnpaRedDark, modifier = Modifier.size(16.dp)) },
+              modifier = Modifier.fillMaxWidth(),
+              singleLine = true
+            )
+          }
+        }
+
         // Level Dropdown
         var levelExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
@@ -1072,72 +1254,6 @@ fun AddOfficeBearerDialog(
           modifier = Modifier.fillMaxWidth()
         )
 
-        // Photo URL Input with live preview
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-          OutlinedTextField(
-            value = photoUrl,
-            onValueChange = { photoUrl = it },
-            label = { Text("புகைப்பட URL (Photo URL / Web Image)") },
-            placeholder = { Text("https://example.com/photo.jpg") },
-            modifier = Modifier.fillMaxWidth()
-          )
-
-          // Quick Photo Preset Suggestions
-          Text("புகைப்பட தேர்வு / Preset:", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-          Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-          ) {
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE2E8F0))
-                .clickable { photoUrl = LeaderPhotoAssets.DISTRICT_PRESIDENT_DEFAULT }
-                .padding(horizontal = 6.dp, vertical = 3.dp)
-            ) {
-              Text("தலைவர் படம் 1", fontSize = 9.5.sp, color = TnpaJetBlack)
-            }
-
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE2E8F0))
-                .clickable { photoUrl = LeaderPhotoAssets.DISTRICT_SECRETARY_DEFAULT }
-                .padding(horizontal = 6.dp, vertical = 3.dp)
-            ) {
-              Text("செயலாளர் படம் 2", fontSize = 9.5.sp, color = TnpaJetBlack)
-            }
-
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE2E8F0))
-                .clickable { photoUrl = LeaderPhotoAssets.YOUTH_WING_DEFAULT }
-                .padding(horizontal = 6.dp, vertical = 3.dp)
-            ) {
-              Text("இளைஞரணி படம் 3", fontSize = 9.5.sp, color = TnpaJetBlack)
-            }
-          }
-
-          if (photoUrl.isNotBlank()) {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.padding(top = 4.dp)
-            ) {
-              Text("Live Preview: ", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TnpaGreen)
-              LeaderProfilePhotoView(
-                photoUrl = photoUrl,
-                fullName = fullName,
-                tamilName = tamilName,
-                designation = designation,
-                level = level,
-                size = 36.dp,
-                enableEnlargeOnClick = false
-              )
-            }
-          }
-        }
-
         OutlinedTextField(
           value = appointmentReason,
           onValueChange = { appointmentReason = it },
@@ -1181,6 +1297,151 @@ fun AddOfficeBearerDialog(
 }
 
 // ============================================================================
+// UPDATE BEARER PHOTO DIALOG (DIRECT UPLOAD FOR ANY LEADER)
+// ============================================================================
+@Composable
+fun UpdateBearerPhotoDialog(
+  bearer: HierarchyOfficeBearer,
+  currentAdminRole: AdminRole,
+  currentAdminDistrict: String,
+  currentAdminName: String,
+  onDismiss: () -> Unit,
+  onPhotoUpdated: (String) -> Unit
+) {
+  var photoUrl by remember { mutableStateOf(bearer.photoUrl ?: "") }
+
+  val photoPickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    uri?.let {
+      photoUrl = it.toString()
+    }
+  }
+
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    title = {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = TnpaRedPrimary)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("புகைப்படம் பதிவேற்றம்", fontSize = 16.sp, fontWeight = FontWeight.Black)
+      }
+    },
+    text = {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+      ) {
+        // Leader Header Info
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(10.dp),
+          colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9))
+        ) {
+          Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            LeaderProfilePhotoView(
+              photoUrl = photoUrl,
+              fullName = bearer.fullName,
+              tamilName = bearer.tamilName,
+              designation = bearer.designation,
+              level = bearer.level,
+              size = 56.dp,
+              enableEnlargeOnClick = false
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+              Text(bearer.tamilName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TnpaJetBlack)
+              Text(bearer.designation, fontSize = 11.sp, color = TnpaRedDark, fontWeight = FontWeight.SemiBold)
+              Text(bearer.district, fontSize = 10.sp, color = Color.DarkGray)
+            }
+          }
+        }
+
+        // Upload Button from Gallery
+        Button(
+          onClick = { photoPickerLauncher.launch("image/*") },
+          shape = RoundedCornerShape(8.dp),
+          colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(18.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("போட்டோ கேலரியிலிருந்து தேர்வு செய்", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+
+        // Preset quick selections
+        Text("பரிந்துரைக்கப்பட்ட படங்கள் (Presets):", fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Button(
+            onClick = { photoUrl = LeaderPhotoAssets.DISTRICT_PRESIDENT_DEFAULT },
+            shape = RoundedCornerShape(6.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.height(32.dp)
+          ) {
+            Text("தலைவர் படம்", fontSize = 10.sp, color = TnpaJetBlack)
+          }
+
+          Button(
+            onClick = { photoUrl = LeaderPhotoAssets.DISTRICT_SECRETARY_DEFAULT },
+            shape = RoundedCornerShape(6.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.height(32.dp)
+          ) {
+            Text("செயலாளர் படம்", fontSize = 10.sp, color = TnpaJetBlack)
+          }
+
+          Button(
+            onClick = { photoUrl = LeaderPhotoAssets.YOUTH_WING_DEFAULT },
+            shape = RoundedCornerShape(6.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.height(32.dp)
+          ) {
+            Text("இளைஞரணி படம்", fontSize = 10.sp, color = TnpaJetBlack)
+          }
+        }
+
+        // Web Link or Uri Input
+        OutlinedTextField(
+          value = photoUrl,
+          onValueChange = { photoUrl = it },
+          label = { Text("புகைப்பட Link / Uri") },
+          leadingIcon = { Icon(Icons.Default.Link, contentDescription = null, tint = TnpaRedDark, modifier = Modifier.size(16.dp)) },
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
+    },
+    confirmButton = {
+      Button(
+        onClick = { onPhotoUpdated(photoUrl) },
+        colors = ButtonDefaults.buttonColors(containerColor = TnpaGreen),
+        shape = RoundedCornerShape(8.dp)
+      ) {
+        Text("சேமிக்க (Update Photo)")
+      }
+    },
+    dismissButton = {
+      OutlinedButton(onClick = onDismiss, shape = RoundedCornerShape(8.dp)) {
+        Text("ரத்து")
+      }
+    }
+  )
+}
+
+// ============================================================================
 // TRANSFER / CHANGE OFFICE BEARER DIALOG
 // ============================================================================
 @Composable
@@ -1196,7 +1457,16 @@ fun TransferOfficeBearerDialog(
   var newFullName by remember { mutableStateOf("") }
   var newMobile by remember { mutableStateOf("") }
   var newAltPhone by remember { mutableStateOf("") }
+  var newPhotoUrl by remember { mutableStateOf("") }
   var transferReason by remember { mutableStateOf("காலமுறை நிர்வாக மாற்றம் / புதிய பொறுப்பாளர் நியமனம்") }
+
+  val photoPickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    uri?.let {
+      newPhotoUrl = it.toString()
+    }
+  }
 
   AlertDialog(
     onDismissRequest = onDismiss,
@@ -1219,7 +1489,7 @@ fun TransferOfficeBearerDialog(
           modifier = Modifier.fillMaxWidth(),
           shape = RoundedCornerShape(8.dp),
           colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
-          border = androidx.compose.foundation.BorderStroke(1.dp, TnpaRedSoft)
+          border = BorderStroke(1.dp, TnpaRedSoft)
         ) {
           Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text("தற்போதைய பொறுப்பாளர் (Current):", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TnpaRedDark)
@@ -1229,6 +1499,34 @@ fun TransferOfficeBearerDialog(
         }
 
         Text("புதிய பொறுப்பாளர் விவரங்கள்:", fontSize = 12.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
+
+        // Photo Upload for new transferee
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          LeaderProfilePhotoView(
+            photoUrl = newPhotoUrl,
+            fullName = newFullName.ifBlank { "New" },
+            tamilName = newTamilName.ifBlank { "புதிய நபர்" },
+            designation = oldBearer.designation,
+            level = oldBearer.level,
+            size = 48.dp,
+            enableEnlargeOnClick = false
+          )
+
+          Button(
+            onClick = { photoPickerLauncher.launch("image/*") },
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+            modifier = Modifier.weight(1f)
+          ) {
+            Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("புகைப்படம் பதிவேற்றுக", fontSize = 11.sp)
+          }
+        }
 
         OutlinedTextField(
           value = newTamilName,
@@ -1280,6 +1578,7 @@ fun TransferOfficeBearerDialog(
             cityName = oldBearer.cityName,
             mobile = newMobile,
             altPhone = newAltPhone,
+            photoUrl = newPhotoUrl.ifBlank { LeaderPhotoAssets.getSuggestedPhotoForName(newTamilName.ifBlank { newFullName }, oldBearer.level) },
             appointedByAdmin = "$currentAdminName ($currentAdminRole)"
           )
           onTransferred(newBearer, transferReason)
@@ -1334,7 +1633,7 @@ fun AuditLogsDialog(
               modifier = Modifier.fillMaxWidth(),
               shape = RoundedCornerShape(8.dp),
               colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
-              border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
+              border = BorderStroke(1.dp, Color(0xFFE2E8F0))
             ) {
               Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(

@@ -287,7 +287,7 @@ fun TnpaMainApp() {
               Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Text(
-                    text = "டிஎன்பிஏ சங்கம்",
+                    text = "TNPA",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
                     color = TnpaJetBlack
@@ -310,7 +310,7 @@ fun TnpaMainApp() {
                   }
                 }
                 Text(
-                  text = "தமிழ்நாடு பெயிண்டர்கள் முன்னேற்ற சங்கம்",
+                  text = "Tamil Nadu Painters Association",
                   style = MaterialTheme.typography.labelSmall,
                   color = TnpaRedDark,
                   fontWeight = FontWeight.Bold,

@@ -7,6 +7,7 @@ import com.example.model.AdminStatus
 import com.example.model.ApprovalStatus
 import com.example.model.AuditActionType
 import com.example.model.AuditLogEntry
+import com.example.model.DistrictSeedData
 import com.example.model.JobCategory
 import com.example.model.JobPostingItem
 import com.example.model.JobPostingStatus
@@ -87,64 +88,102 @@ object AdminApprovalRepository {
     )
     adminAccounts.add(superAdminPresident)
 
-    // 3. SEED SAMPLE STATE ADMINS (Pre-allocated slots from predefined state posts)
-    val stateTreasurerSalt = AdminSecurityUtils.generateSalt()
-    val stateTreasurer = AdminAccount(
-      id = "STA-02",
-      username = "state.treasurer",
-      fullName = "சக்திவேல் (மாநில பொருளாளர்)",
-      role = AdminRole.STATE_ADMIN,
-      designation = PredefinedAdminPosts.STATE_ADMIN_POSTS[0], // மாநில பொருளாளர்
-      assignedDistrict = null,
-      mobileNumber = "9080047281",
-      email = "sakthivel.treasurer@tnpa.org",
-      status = AdminStatus.PENDING_VERIFICATION,
-      passwordHash = "",
-      salt = stateTreasurerSalt,
-      oneTimeSetupKey = "TNPA-ADM-7842-TRZ",
-      isSetupKeyUsed = false,
-      createdByAdminId = "SA-01"
+    // 3. SEED ALL PREDEFINED STATE ADMINS WITH UNIQUE PASSKEYS
+    val statePostSeeds = listOf(
+      Triple("state.treasurer", PredefinedAdminPosts.STATE_ADMIN_POSTS[0], "சக்திவேல் (மாநில பொருளாளர்)"),
+      Triple("state.orgsec", PredefinedAdminPosts.STATE_ADMIN_POSTS[1], "முத்துக்குமார் (மாநில அமைப்புச் செயலாளர்)"),
+      Triple("state.propaganda", PredefinedAdminPosts.STATE_ADMIN_POSTS[2], "ராதாகிருஷ்ணன் (கொள்கை பரப்புச் செயலாளர்)"),
+      Triple("state.adminsec", PredefinedAdminPosts.STATE_ADMIN_POSTS[3], "விஜயகுமார் (நிர்வாகச் செயலாளர்)"),
+      Triple("state.vicepres", PredefinedAdminPosts.STATE_ADMIN_POSTS[4], "முருகானந்தம் (மாநில துணைத் தலைவர்)"),
+      Triple("state.coordinator", PredefinedAdminPosts.STATE_ADMIN_POSTS[5], "ஜெயச்சந்திரன் (மாநில ஒருங்கிணைப்பாளர்)")
     )
-    adminAccounts.add(stateTreasurer)
+    val stateKeyCodes = listOf("7842-TRZ", "4912-ORG", "6321-PRP", "8193-ADM", "5247-VPR", "9034-CRD")
+    val stateMobiles = listOf("9080047281", "9842145678", "9443210987", "9894561230", "9789012345", "9655123456")
 
-    // 3. SEED SAMPLE DISTRICT ADMINS (Trichy, Chennai, Madurai)
-    val trichyPresSalt = AdminSecurityUtils.generateSalt()
-    val trichyPresident = AdminAccount(
-      id = "DA-TRY-01",
-      username = "trichy.president",
-      fullName = "ஆர். சுந்தரமூர்த்தி (திருச்சி மாவட்டத் தலைவர்)",
-      role = AdminRole.DISTRICT_ADMIN,
-      designation = PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], // மாவட்டத் தலைவர்
-      assignedDistrict = "திருச்சிராப்பள்ளி (Tiruchirappalli)",
-      mobileNumber = "9442987654",
-      email = "trichy.pres@tnpa.org",
-      status = AdminStatus.ACTIVE,
-      passwordHash = AdminSecurityUtils.hashPassword("Trichy@2026", trichyPresSalt),
-      salt = trichyPresSalt,
-      oneTimeSetupKey = null,
-      isSetupKeyUsed = true,
-      createdByAdminId = "SA-01"
-    )
-    adminAccounts.add(trichyPresident)
+    statePostSeeds.forEachIndexed { index, (uname, desig, name) ->
+      val salt = AdminSecurityUtils.generateSalt()
+      val key = "TNPA-STA-${stateKeyCodes.getOrElse(index) { "KEY-$index" }}"
+      adminAccounts.add(
+        AdminAccount(
+          id = "STA-0${index + 2}",
+          username = uname,
+          fullName = name,
+          role = AdminRole.STATE_ADMIN,
+          designation = desig,
+          assignedDistrict = null,
+          mobileNumber = stateMobiles.getOrElse(index) { "984000000$index" },
+          email = "$uname@tnpa.org",
+          status = AdminStatus.PENDING_VERIFICATION,
+          passwordHash = "",
+          salt = salt,
+          oneTimeSetupKey = key,
+          isSetupKeyUsed = false,
+          createdByAdminId = "SA-01"
+        )
+      )
+    }
 
-    val maduraiSecSalt = AdminSecurityUtils.generateSalt()
-    val maduraiSecretary = AdminAccount(
-      id = "DA-MDU-02",
-      username = "madurai.sec",
-      fullName = "எஸ். கணேசன் (மதுரை மாவட்டச் செயலாளர்)",
-      role = AdminRole.DISTRICT_ADMIN,
-      designation = PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], // மாவட்டச் செயலாளர்
-      assignedDistrict = "மதுரை (Madurai)",
-      mobileNumber = "9842198765",
-      email = "madurai.sec@tnpa.org",
-      status = AdminStatus.PENDING_VERIFICATION,
-      passwordHash = "",
-      salt = maduraiSecSalt,
-      oneTimeSetupKey = "TNPA-ADM-3921-MDU",
-      isSetupKeyUsed = false,
-      createdByAdminId = "SA-01"
+    // 4. SEED SAMPLE DISTRICT ADMINS ACROSS TAMIL NADU DISTRICTS WITH UNIQUE PASSKEYS
+    val districtSeeds = listOf(
+      // Tiruchirappalli
+      DistrictSeedData("trichy.president", "ஆர். சுந்தரமூர்த்தி", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "திருச்சிராப்பள்ளி (Tiruchirappalli)", "9442987654", "TNPA-DST-TRY-7419"),
+      DistrictSeedData("trichy.sec", "வி. செல்வராஜ்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], "திருச்சிராப்பள்ளி (Tiruchirappalli)", "9843210987", "TNPA-DST-TRY-5628"),
+      DistrictSeedData("trichy.treasurer", "எம். ரவிக்குமார்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[2], "திருச்சிராப்பள்ளி (Tiruchirappalli)", "9789654321", "TNPA-DST-TRY-1849"),
+      // Madurai
+      DistrictSeedData("madurai.president", "பி. மாணிக்கம்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "மதுரை (Madurai)", "9842100112", "TNPA-DST-MDU-9182"),
+      DistrictSeedData("madurai.sec", "எஸ். கணேசன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], "மதுரை (Madurai)", "9842198765", "TNPA-ADM-3921-MDU"),
+      DistrictSeedData("madurai.treasurer", "கே. பொன்னுசாமி", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[2], "மதுரை (Madurai)", "9443567890", "TNPA-DST-MDU-4835"),
+      // Chennai
+      DistrictSeedData("chennai.president", "டி. ஜெயக்குமார்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "சென்னை (Chennai)", "9840123456", "TNPA-DST-CHE-8391"),
+      DistrictSeedData("chennai.sec", "என். அன்பழகன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], "சென்னை (Chennai)", "9841234567", "TNPA-DST-CHE-2940"),
+      DistrictSeedData("chennai.treasurer", "ஏ. மோகனசுந்தரம்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[2], "சென்னை (Chennai)", "9840987654", "TNPA-DST-CHE-5173"),
+      // Coimbatore
+      DistrictSeedData("cbe.president", "சி. சுப்பிரமணியன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "கோயம்புத்தூர் (Coimbatore)", "9842233445", "TNPA-DST-CBE-6284"),
+      DistrictSeedData("cbe.sec", "ஆர். தங்கவேல்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], "கோயம்புத்தூர் (Coimbatore)", "9843344556", "TNPA-DST-CBE-3951"),
+      DistrictSeedData("cbe.treasurer", "ஜி. வேலுச்சாமி", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[2], "கோயம்புத்தூர் (Coimbatore)", "9842455667", "TNPA-DST-CBE-7120"),
+      // Salem
+      DistrictSeedData("salem.president", "எம். பழனிவேல்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "சேலம் (Salem)", "9443123450", "TNPA-DST-SLM-3810"),
+      DistrictSeedData("salem.sec", "கே. பெரியசாமி", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], "சேலம் (Salem)", "9842567890", "TNPA-DST-SLM-9426"),
+      DistrictSeedData("salem.treasurer", "எஸ். இளங்கோவன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[2], "சேலம் (Salem)", "9789234561", "TNPA-DST-SLM-6053"),
+      // Tirunelveli
+      DistrictSeedData("nellai.president", "டி. சுடலைமணி", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "திருநெல்வேலி (Tirunelveli)", "9443678901", "TNPA-DST-TNV-4719"),
+      DistrictSeedData("nellai.sec", "பி. சங்கரநாராயணன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[1], "திருநெல்வேலி (Tirunelveli)", "9842789012", "TNPA-DST-TNV-8205"),
+      DistrictSeedData("nellai.treasurer", "எம். மாரியப்பன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[2], "திருநெல்வேলি (Tirunelveli)", "9789890123", "TNPA-DST-TNV-3948"),
+      // Erode
+      DistrictSeedData("erode.president", "எஸ். குழந்தைவேல்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "ஈரோடு (Erode)", "9842345678", "TNPA-DST-ERD-5281"),
+      // Vellore
+      DistrictSeedData("vellore.president", "கே. வெங்கடாசலம்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "வேலூர் (Vellore)", "9443456789", "TNPA-DST-VEL-6394"),
+      // Thanjavur
+      DistrictSeedData("thanjavur.president", "ஆர். நடராஜன்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "தஞ்சாவூர் (Thanjavur)", "9843567890", "TNPA-DST-TNJ-3829"),
+      // Dindigul
+      DistrictSeedData("dindigul.president", "வி. ஆறுமுகம்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "திண்டுக்கல் (Dindigul)", "9789456123", "TNPA-DST-DGL-4918"),
+      // Thoothukudi
+      DistrictSeedData("tuticorin.president", "ஜெ. அந்தோணிராஜ்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "தூத்துக்குடி (Thoothukudi)", "9442345678", "TNPA-DST-TUT-7194"),
+      // Kanyakumari
+      DistrictSeedData("kanyakumari.president", "எம். வின்சென்ட்", PredefinedAdminPosts.DISTRICT_ADMIN_POSTS[0], "கன்னியாகுமரி (Kanyakumari)", "9842678901", "TNPA-DST-KK-8153")
     )
-    adminAccounts.add(maduraiSecretary)
+
+    districtSeeds.forEachIndexed { index, data ->
+      val salt = AdminSecurityUtils.generateSalt()
+      adminAccounts.add(
+        AdminAccount(
+          id = "DA-GEN-${index + 1}",
+          username = data.username,
+          fullName = "${data.fullName} (${data.district.substringBefore(" (")})",
+          role = AdminRole.DISTRICT_ADMIN,
+          designation = data.designation,
+          assignedDistrict = data.district,
+          mobileNumber = data.mobile,
+          email = "${data.username}@tnpa.org",
+          status = AdminStatus.PENDING_VERIFICATION,
+          passwordHash = "",
+          salt = salt,
+          oneTimeSetupKey = data.passkey,
+          isSetupKeyUsed = false,
+          createdByAdminId = "SA-01"
+        )
+      )
+    }
 
     // Initial Audit Log
     auditLogs.add(
@@ -613,6 +652,83 @@ object AdminApprovalRepository {
     )
 
     return Result.success(newSetupKey)
+  }
+
+  // Generate Unique Passkeys / Setup Keys for ALL State and District Admins (SUPER ADMIN ONLY)
+  fun generatePasskeysForAllAdmins(
+    callingAdmin: AdminAccount
+  ): Result<Int> {
+    if (callingAdmin.role != AdminRole.SUPER_ADMIN) {
+      return Result.failure(Exception("Super Admin மட்டுமே அனைவருக்கும் பாஸ்கி உருவாக்க முடியும்."))
+    }
+
+    var count = 0
+
+    // 1. Ensure all Predefined State Admin posts exist
+    val existingStateDesigs = adminAccounts.filter { it.role == AdminRole.STATE_ADMIN }.map { it.designation }.toSet()
+    val statePostTemplates = listOf(
+      Triple("state.treasurer", PredefinedAdminPosts.STATE_ADMIN_POSTS[0], "சக்திவேல் (மாநில பொருளாளர்)"),
+      Triple("state.orgsec", PredefinedAdminPosts.STATE_ADMIN_POSTS[1], "முத்துக்குமார் (மாநில அமைப்புச் செயலாளர்)"),
+      Triple("state.propaganda", PredefinedAdminPosts.STATE_ADMIN_POSTS[2], "ராதாகிருஷ்ணன் (கொள்கை பரப்புச் செயலாளர்)"),
+      Triple("state.adminsec", PredefinedAdminPosts.STATE_ADMIN_POSTS[3], "விஜயகுமார் (நிர்வாகச் செயலாளர்)"),
+      Triple("state.vicepres", PredefinedAdminPosts.STATE_ADMIN_POSTS[4], "முருகானந்தம் (மாநில துணைத் தலைவர்)"),
+      Triple("state.coordinator", PredefinedAdminPosts.STATE_ADMIN_POSTS[5], "ஜெயச்சந்திரன் (மாநில ஒருங்கிணைப்பாளர்)")
+    )
+
+    for ((uname, desig, name) in statePostTemplates) {
+      if (!existingStateDesigs.contains(desig)) {
+        val newKey = AdminSecurityUtils.generateOneTimeSetupKey("TNPA-STA")
+        val salt = AdminSecurityUtils.generateSalt()
+        adminAccounts.add(
+          AdminAccount(
+            id = "STA-" + (1000 + (Math.random() * 9000).toInt()),
+            username = uname,
+            fullName = name,
+            role = AdminRole.STATE_ADMIN,
+            designation = desig,
+            assignedDistrict = null,
+            mobileNumber = "98" + (10000000..99999999).random(),
+            email = "$uname@tnpa.org",
+            status = AdminStatus.PENDING_VERIFICATION,
+            passwordHash = "",
+            salt = salt,
+            oneTimeSetupKey = newKey,
+            isSetupKeyUsed = false,
+            createdByAdminId = callingAdmin.id
+          )
+        )
+      }
+    }
+
+    // 2. Loop through all accounts and assign a new unique passkey to each non-super admin
+    for (i in adminAccounts.indices) {
+      val acc = adminAccounts[i]
+      if (acc.role != AdminRole.SUPER_ADMIN) {
+        val prefix = if (acc.role == AdminRole.STATE_ADMIN) "TNPA-STA" else {
+          val distCode = acc.assignedDistrict?.take(3)?.uppercase() ?: "DST"
+          "TNPA-DST"
+        }
+        val newKey = AdminSecurityUtils.generateOneTimeSetupKey(prefix)
+        adminAccounts[i] = acc.copy(
+          status = AdminStatus.PENDING_VERIFICATION,
+          passwordHash = "",
+          oneTimeSetupKey = newKey,
+          isSetupKeyUsed = false,
+          failedLoginAttempts = 0,
+          isLocked = false
+        )
+        count++
+      }
+    }
+
+    logAudit(
+      AuditActionType.ADMIN_CREDENTIAL_RESET,
+      callingAdmin,
+      null,
+      "அனைத்து நிர்வாகிகள் ($count நபர்கள்) கணக்குகளுக்கும் புதிய தனித்தனி Passkey (One-Time Setup Key) வெற்றிகரமாக உருவாக்கப்பட்டது."
+    )
+
+    return Result.success(count)
   }
 
   // Change District Assignment for a District Admin (SUPER ADMIN ONLY)

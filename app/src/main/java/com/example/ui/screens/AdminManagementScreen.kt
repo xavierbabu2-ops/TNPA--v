@@ -55,6 +55,7 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SupervisedUserCircle
@@ -246,6 +247,7 @@ fun AdminLoginView(
   var isPasswordVisible by remember { mutableStateOf(false) }
   var errorMessage by remember { mutableStateOf<String?>(null) }
   var isLoading by remember { mutableStateOf(false) }
+  var showAllPasskeysDialog by remember { mutableStateOf(false) }
 
   val scrollState = rememberScrollState()
 
@@ -308,15 +310,32 @@ fun AdminLoginView(
       border = CardDefaults.outlinedCardBorder().copy(brush = Brush.horizontalGradient(listOf(TnpaRedPrimary, TnpaGold)))
     ) {
       Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(Icons.Default.Shield, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(
-            text = "சூப்பர் அட்மின் மற்றும் நிர்வாகிகள் பாஸ்வேர்டு பட்டியல்:",
-            color = TnpaJetBlack,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold
-          )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Shield, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              text = "சூப்பர் அட்மின் & நிர்வாகிகள் பட்டியல்:",
+              color = TnpaJetBlack,
+              fontSize = 13.sp,
+              fontWeight = FontWeight.Bold
+            )
+          }
+
+          Button(
+            onClick = { showAllPasskeysDialog = true },
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+            shape = RoundedCornerShape(6.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+          ) {
+            Icon(Icons.Default.Key, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("அனைத்து பாஸ்கிகள்", fontSize = 10.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
+          }
         }
 
         Card(
@@ -361,7 +380,7 @@ fun AdminLoginView(
               color = Color(0xFF1E3A8A)
             )
             Text(
-              text = "• Username: state.treasurer  |  Setup Key: TNPA-ADM-7842-TRZ",
+              text = "• Username: state.treasurer  |  Passkey: TNPA-STA-7842-TRZ",
               fontSize = 11.sp,
               fontWeight = FontWeight.Black,
               fontFamily = FontFamily.Monospace,
@@ -375,7 +394,7 @@ fun AdminLoginView(
               color = Color(0xFF15803D)
             )
             Text(
-              text = "• Username: trichy.president  |  Password: Trichy@2026",
+              text = "• Username: trichy.president  |  Passkey: TNPA-DST-TRY-7419",
               fontSize = 11.sp,
               fontWeight = FontWeight.Black,
               fontFamily = FontFamily.Monospace,
@@ -594,7 +613,7 @@ fun AdminLoginView(
             selected = usernameInput == "state.treasurer",
             onClick = {
               usernameInput = "state.treasurer"
-              passwordInput = "TNPA-ADM-7842-TRZ"
+              passwordInput = "TNPA-STA-7842-TRZ"
               errorMessage = null
             },
             label = { Text("One-Time Setup Key Login (புதிய நிர்வாகி)", fontSize = 11.sp) },
@@ -602,6 +621,19 @@ fun AdminLoginView(
           )
         }
       }
+    }
+
+    if (showAllPasskeysDialog) {
+      AdminPasskeyDirectoryModalDialog(
+        callingAdmin = null,
+        onDismiss = { showAllPasskeysDialog = false },
+        onAutofillLogin = { u, p ->
+          usernameInput = u
+          passwordInput = p
+          showAllPasskeysDialog = false
+          errorMessage = null
+        }
+      )
     }
   }
 }
@@ -1649,12 +1681,15 @@ fun AdminHierarchyManagementSubScreen(
   onChangeDistrictClick: (AdminAccount) -> Unit,
   onStatusChange: (String, AdminStatus) -> Unit
 ) {
+  val context = LocalContext.current
   val superCount = AdminApprovalRepository.getSuperAdminCount()
   val stateCount = AdminApprovalRepository.getStateAdminCount()
   val districtCount = AdminApprovalRepository.getDistrictAdminCount()
   val allAdmins = AdminApprovalRepository.getAllAdmins()
 
   var filterRole by remember { mutableStateOf<AdminRole?>(null) }
+  var showPasskeyDirectoryDialog by remember { mutableStateOf(false) }
+  var showRegenerateAllConfirmDialog by remember { mutableStateOf(false) }
 
   val filteredAdmins = allAdmins.filter {
     filterRole == null || it.role == filterRole
@@ -1691,6 +1726,38 @@ fun AdminHierarchyManagementSubScreen(
             Icon(Icons.Default.PersonAdd, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(4.dp))
             Text("புதிய நிர்வாகி", fontSize = 11.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
+          }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Super Admin Passkey Action Buttons Row
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          Button(
+            onClick = { showPasskeyDirectoryDialog = true },
+            modifier = Modifier.weight(1f).height(34.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
+          ) {
+            Icon(Icons.Default.Key, contentDescription = null, tint = TnpaRedDark, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("பாஸ்கி பட்டியல்", fontSize = 11.sp, color = TnpaRedDark, fontWeight = FontWeight.Bold)
+          }
+
+          Button(
+            onClick = { showRegenerateAllConfirmDialog = true },
+            modifier = Modifier.weight(1.3f).height(34.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
+          ) {
+            Icon(Icons.Default.Refresh, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("அனைவருக்கும் பாஸ்கி உருவாக்கு", fontSize = 10.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
           }
         }
 
@@ -1900,6 +1967,63 @@ fun AdminHierarchyManagementSubScreen(
           }
         }
       }
+    }
+
+    if (showPasskeyDirectoryDialog) {
+      AdminPasskeyDirectoryModalDialog(
+        callingAdmin = admin,
+        onDismiss = { showPasskeyDirectoryDialog = false },
+        onRegenerateAllKeys = {
+          val res = AdminApprovalRepository.generatePasskeysForAllAdmins(admin)
+          if (res.isSuccess) {
+            Toast.makeText(context, "அனைத்து நிர்வாகிகள் (${res.getOrNull()} நபர்கள்) கணக்குகளுக்கும் புதிய தனித்தனி Passkey உருவாக்கப்பட்டது!", Toast.LENGTH_LONG).show()
+          } else {
+            Toast.makeText(context, "பிழை: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+          }
+        }
+      )
+    }
+
+    if (showRegenerateAllConfirmDialog) {
+      AlertDialog(
+        onDismissRequest = { showRegenerateAllConfirmDialog = false },
+        title = {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Key, contentDescription = null, tint = TnpaGold)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("அனைவருக்கும் தனித்தனி பாஸ்கி உருவாக்கவா?", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TnpaRedDark)
+          }
+        },
+        text = {
+          Text(
+            text = "அனைத்து மாநில மற்றும் மாவட்ட நிர்வாகிகள் கணக்குகளுக்கும் புதிய தனித்தனி One-Time Passkey உருவாக்கப்படும். அவர்கள் புதிய பாஸ்கியைப் பயன்படுத்தி உள்நுழைந்து கடவுச்சொல்லை அமைத்துக் கொள்ளலாம்.\n\nதொடர விரும்புகிறீர்களா?",
+            fontSize = 13.sp,
+            color = TnpaJetBlack
+          )
+        },
+        confirmButton = {
+          Button(
+            onClick = {
+              showRegenerateAllConfirmDialog = false
+              val res = AdminApprovalRepository.generatePasskeysForAllAdmins(admin)
+              if (res.isSuccess) {
+                Toast.makeText(context, "அனைத்து நிர்வாகிகள் கணக்குகளுக்கும் புதிய தனித்தனி Passkey உருவாக்கப்பட்டது!", Toast.LENGTH_LONG).show()
+                showPasskeyDirectoryDialog = true
+              } else {
+                Toast.makeText(context, "பிழை: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+              }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary)
+          ) {
+            Text("ஆம், பாஸ்கி உருவாக்கு", fontWeight = FontWeight.Bold)
+          }
+        },
+        dismissButton = {
+          OutlinedButton(onClick = { showRegenerateAllConfirmDialog = false }) {
+            Text("ரத்து செய்")
+          }
+        }
+      )
     }
   }
 }
@@ -2456,6 +2580,340 @@ fun JobApprovalsSubScreen(
       dismissButton = {
         TextButton(onClick = { rejectionDialogJob = null }) {
           Text("ரத்து")
+        }
+      }
+    )
+  }
+}
+
+// ============================================================================
+// ADMIN PASSKEY DIRECTORY MODAL DIALOG (UNIQUE PASSKEYS LIST & SHARING)
+// ============================================================================
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminPasskeyDirectoryModalDialog(
+  callingAdmin: AdminAccount?,
+  onDismiss: () -> Unit,
+  onAutofillLogin: ((String, String) -> Unit)? = null,
+  onRegenerateAllKeys: (() -> Unit)? = null
+) {
+  val context = LocalContext.current
+  val clipboardManager = LocalClipboardManager.current
+
+  var searchQuery by remember { mutableStateOf("") }
+  var filterRole by remember { mutableStateOf<AdminRole?>(null) }
+  var showRegenerateConfirm by remember { mutableStateOf(false) }
+
+  val allAdmins = AdminApprovalRepository.getAllAdmins()
+  val filteredAdmins = allAdmins.filter { acc ->
+    val matchesRole = filterRole == null || acc.role == filterRole
+    val matchesQuery = searchQuery.isBlank() ||
+      acc.fullName.contains(searchQuery, ignoreCase = true) ||
+      acc.username.contains(searchQuery, ignoreCase = true) ||
+      acc.designation.contains(searchQuery, ignoreCase = true) ||
+      (acc.assignedDistrict?.contains(searchQuery, ignoreCase = true) == true) ||
+      (acc.oneTimeSetupKey?.contains(searchQuery, ignoreCase = true) == true)
+    matchesRole && matchesQuery
+  }
+
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    title = {
+      Column {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Key, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("நிர்வாகிகள் பாஸ்கி பட்டியல்", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TnpaRedDark)
+          }
+          IconButton(onClick = onDismiss) {
+            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
+          }
+        }
+        Text(
+          text = "அனைத்து மாநில & மாவட்ட நிர்வாகிகளின் தனித்தனி Passkey விவரங்கள் (${allAdmins.size} நிர்வாகிகள்)",
+          fontSize = 11.sp,
+          color = Color.Gray
+        )
+      }
+    },
+    text = {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(480.dp)
+      ) {
+        // Search TextField
+        OutlinedTextField(
+          value = searchQuery,
+          onValueChange = { searchQuery = it },
+          label = { Text("தேடுக (பெயர் / மாவட்டம் / பதவி / Username)") },
+          leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TnpaRedPrimary) },
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 6.dp),
+          singleLine = true,
+          shape = RoundedCornerShape(8.dp)
+        )
+
+        // Filter chips
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          FilterChip(
+            selected = filterRole == null,
+            onClick = { filterRole = null },
+            label = { Text("அனைத்தும் (${allAdmins.size})", fontSize = 10.sp) }
+          )
+          FilterChip(
+            selected = filterRole == AdminRole.STATE_ADMIN,
+            onClick = { filterRole = AdminRole.STATE_ADMIN },
+            label = { Text("மாநில (${allAdmins.count { it.role == AdminRole.STATE_ADMIN }})", fontSize = 10.sp) }
+          )
+          FilterChip(
+            selected = filterRole == AdminRole.DISTRICT_ADMIN,
+            onClick = { filterRole = AdminRole.DISTRICT_ADMIN },
+            label = { Text("மாவட்டம் (${allAdmins.count { it.role == AdminRole.DISTRICT_ADMIN }})", fontSize = 10.sp) }
+          )
+        }
+
+        // Action Row: Copy All Passkeys
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Button(
+            onClick = {
+              val formattedSummary = buildString {
+                appendLine("=========================================")
+                appendLine("🏢 தமிழ்நாடு ஓவியர்கள் & பெயிண்டர்கள் நலச் சங்கம்")
+                appendLine("🔑 நிர்வாகிகள் பாஸ்கி & உள்நுழைவு பட்டியல்")
+                appendLine("=========================================\n")
+                allAdmins.forEach { acc ->
+                  val keyOrPass = if (acc.role == AdminRole.SUPER_ADMIN) {
+                    if (acc.username == "superadmin") "SuperAdmin@2026 (Password)" else "President@2026 (Password)"
+                  } else {
+                    acc.oneTimeSetupKey ?: "TNPA-KEY-PENDING"
+                  }
+                  appendLine("👤 ${acc.fullName}")
+                  appendLine("📋 பதவி: ${acc.designation} ${if (acc.assignedDistrict != null) "(${acc.assignedDistrict})" else ""}")
+                  appendLine("📱 மொபைல்: ${acc.mobileNumber}")
+                  appendLine("🆔 Username: ${acc.username}")
+                  appendLine("🔑 Passkey/Password: $keyOrPass")
+                  appendLine("-----------------------------------------")
+                }
+              }
+              clipboardManager.setText(AnnotatedString(formattedSummary))
+              Toast.makeText(context, "அனைத்து நிர்வாகிகள் பாஸ்கிகளும் நகலெடுக்கப்பட்டது! (All Passkeys Copied)", Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier.weight(1f),
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaJetBlack),
+            shape = RoundedCornerShape(6.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp, horizontal = 8.dp)
+          ) {
+            Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(14.dp), tint = TnpaGold)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("அனைத்தையும் நகலெடு", fontSize = 11.sp, color = TnpaGold, fontWeight = FontWeight.Bold)
+          }
+
+          if (callingAdmin?.role == AdminRole.SUPER_ADMIN && onRegenerateAllKeys != null) {
+            Button(
+              onClick = { showRegenerateConfirm = true },
+              modifier = Modifier.weight(1f),
+              colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+              shape = RoundedCornerShape(6.dp),
+              contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp, horizontal = 8.dp)
+            ) {
+              Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
+              Spacer(modifier = Modifier.width(4.dp))
+              Text("புதிய பாஸ்கிகள் உருவாக்கு", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+          }
+        }
+
+        // List of Admins
+        LazyColumn(
+          modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f),
+          verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          items(filteredAdmins, key = { it.id }) { acc ->
+            val passkeyDisplay = if (acc.role == AdminRole.SUPER_ADMIN) {
+              if (acc.username == "superadmin") "SuperAdmin@2026" else "President@2026"
+            } else {
+              acc.oneTimeSetupKey ?: "TNPA-ADM-${acc.id.take(4).uppercase()}"
+            }
+
+            Card(
+              modifier = Modifier.fillMaxWidth(),
+              shape = RoundedCornerShape(8.dp),
+              colors = CardDefaults.cardColors(containerColor = Color.White),
+              border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
+            ) {
+              Column(modifier = Modifier.padding(10.dp)) {
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  Column(modifier = Modifier.weight(1f)) {
+                    Text(text = acc.fullName, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = TnpaJetBlack)
+                    Text(
+                      text = "${acc.designation} ${if (acc.assignedDistrict != null) "• ${acc.assignedDistrict}" else ""}",
+                      fontSize = 11.sp,
+                      color = TnpaRedDark,
+                      fontWeight = FontWeight.SemiBold
+                    )
+                  }
+                  Card(
+                    shape = RoundedCornerShape(4.dp),
+                    colors = CardDefaults.cardColors(
+                      containerColor = if (acc.role == AdminRole.SUPER_ADMIN) Color(0xFFFEE2E2)
+                      else if (acc.role == AdminRole.STATE_ADMIN) Color(0xFFDBEAFE) else Color(0xFFDCFCE7)
+                    )
+                  ) {
+                    Text(
+                      text = if (acc.role == AdminRole.SUPER_ADMIN) "Super Admin"
+                      else if (acc.role == AdminRole.STATE_ADMIN) "State" else "District",
+                      fontSize = 9.sp,
+                      fontWeight = FontWeight.Bold,
+                      color = if (acc.role == AdminRole.SUPER_ADMIN) TnpaRedDark
+                      else if (acc.role == AdminRole.STATE_ADMIN) Color(0xFF1E40AF) else Color(0xFF166534),
+                      modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                  }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                  text = "Username: ${acc.username} | Mobile: ${acc.mobileNumber}",
+                  fontSize = 10.sp,
+                  color = Color.DarkGray
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Passkey Box
+                Card(
+                  modifier = Modifier.fillMaxWidth(),
+                  shape = RoundedCornerShape(6.dp),
+                  colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7)),
+                  border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFCD34D))
+                ) {
+                  Row(
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(horizontal = 8.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                      Icon(Icons.Default.Key, contentDescription = null, tint = Color(0xFF92400E), modifier = Modifier.size(14.dp))
+                      Spacer(modifier = Modifier.width(4.dp))
+                      Text(
+                        text = passkeyDisplay,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                        color = Color(0xFF92400E)
+                      )
+                    }
+
+                    Row {
+                      // Copy Button
+                      IconButton(
+                        onClick = {
+                          clipboardManager.setText(AnnotatedString(passkeyDisplay))
+                          Toast.makeText(context, "${acc.fullName} பாஸ்கி நகலெடுக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.size(28.dp)
+                      ) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy", tint = TnpaJetBlack, modifier = Modifier.size(14.dp))
+                      }
+
+                      // Share via WhatsApp / Other Apps
+                      IconButton(
+                        onClick = {
+                          val shareText = "🏢 தமிழ்நாடு ஓவியர்கள் நல சங்கம்\n\nவணக்கம் ${acc.fullName},\nஉங்களின் நிர்வாகி உள்நுழைவு விவரங்கள்:\n\n• Username: ${acc.username}\n• Passkey (One-Time Setup Key): $passkeyDisplay\n• பதவி: ${acc.designation}\n\nTNPA App-ல் உள்நுழைந்து உங்கள் புதிய கடவுச்சொல்லை அமைத்துக் கொள்ளவும்."
+                          val sendIntent = android.content.Intent().apply {
+                            action = android.content.Intent.ACTION_SEND
+                            putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+                            type = "text/plain"
+                          }
+                          val shareIntent = android.content.Intent.createChooser(sendIntent, "Passkey பகிரவும்")
+                          context.startActivity(shareIntent)
+                        },
+                        modifier = Modifier.size(28.dp)
+                      ) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Share", tint = TnpaGreen, modifier = Modifier.size(14.dp))
+                      }
+                    }
+                  }
+                }
+
+                // If autofill is enabled (e.g. from login screen)
+                if (onAutofillLogin != null) {
+                  Spacer(modifier = Modifier.height(6.dp))
+                  Button(
+                    onClick = {
+                      onAutofillLogin(acc.username, passkeyDisplay)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(30.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+                  ) {
+                    Text("உடனடி உள்நுழைவு (Autofill)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    confirmButton = {
+      Button(
+        onClick = onDismiss,
+        colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary)
+      ) {
+        Text("மூடு (Close)")
+      }
+    }
+  )
+
+  if (showRegenerateConfirm && onRegenerateAllKeys != null) {
+    AlertDialog(
+      onDismissRequest = { showRegenerateConfirm = false },
+      title = { Text("அனைவருக்கும் புதிய பாஸ்கி உருவாக்கவா?", fontWeight = FontWeight.Bold, color = TnpaRedDark) },
+      text = {
+        Text("அனைத்து மாநில மற்றும் மாவட்ட நிர்வாகிகளுக்கும் புதிய தனித்தனி One-Time Passkey உருவாக்கப்படும். பழைய Passkeyகள் மாற்றப்படும். தொடர விரும்புகிறீர்களா?")
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            showRegenerateConfirm = false
+            onRegenerateAllKeys()
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary)
+        ) {
+          Text("ஆம், உருவாக்கு")
+        }
+      },
+      dismissButton = {
+        OutlinedButton(onClick = { showRegenerateConfirm = false }) {
+          Text("ரத்து செய்")
         }
       }
     )

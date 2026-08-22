@@ -502,35 +502,6 @@ fun MemberRegistrationScreen(
                 }
               }
             }
-
-            // Zero-Billing Free Architecture Badge
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(6.dp))
-                .background(TnpaGreen.copy(alpha = 0.12f))
-                .border(1.dp, TnpaGreen.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.VerifiedUser, contentDescription = null, tint = TnpaGreen, modifier = Modifier.size(14.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                  text = "🔒 100% இலவச OTP சரிபார்ப்பு (No-Billing / Zero SMS Cost)",
-                  color = TnpaGreen,
-                  fontSize = 10.sp,
-                  fontWeight = FontWeight.Bold
-                )
-              }
-              Text(
-                text = "கட்டணம் இல்லை",
-                color = TnpaGreen,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Black
-              )
-            }
           }
         }
       }
