@@ -1,23 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Browser Window Card -->
+
+    <!-- 1. Gold Crest Circle Outer Ring with Laurel Accent -->
     <path
-        android:fillColor="#38BDF8"
-        android:pathData="M28,30 h52 c3.3,0 6,2.7 6,6 v36 c0,3.3 -2.7,6 -6,6 h-52 c-3.3,0 -6,-2.7 -6,-6 v-36 c0,-3.3 2.7,-6 6,-6 z" />
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="2.2"
+        android:fillColor="#80000000"
+        android:pathData="M54,26 A28,28 0 1,1 53.9,26 Z" />
+
     <path
-        android:fillColor="#0F172A"
-        android:pathData="M24,38 h60 v34 c0,2.2 -1.8,4 -4,4 h-52 c-2.2,0 -4,-1.8 -4,-4 z" />
-    <!-- Code brackets: < / > -->
+        android:strokeColor="#FDE68A"
+        android:strokeWidth="0.8"
+        android:strokeAlpha="0.7"
+        android:pathData="M54,28.5 A25.5,25.5 0 1,1 53.9,28.5 Z" />
+
+    <!-- 2. Top Association Star -->
+    <!-- Center (54, 32) -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M54,29.5 L55.3,32.2 L58.3,32.6 L56.1,34.8 L56.6,37.8 L54,36.4 L51.4,37.8 L51.9,34.8 L49.7,32.6 L52.7,32.2 Z" />
+
+    <!-- 3. Painter Roller (Diagonal Right to Left) -->
+    <!-- Roller Cylinder -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M39,41 L47,33 C48.5,31.5 51,31.5 52.5,33 L54.5,35 C56,36.5 56,39 54.5,40.5 L46.5,48.5 C45,50 42.5,50 41,48.5 L39,46.5 C37.5,45 37.5,42.5 39,41 Z" />
+    <path
+        android:fillColor="#D97706"
+        android:pathData="M42,38 L48,32 L52,36 L46,42 Z" />
+    <!-- Roller Metal Bracket -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M48,42 L55,49 L46,58 L41,53" />
+    <!-- Roller Handle -->
+    <path
+        android:strokeColor="#DC2626"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:pathData="M41,53 L34,60" />
+
+    <!-- 4. Painter Brush (Diagonal Left to Right) -->
+    <!-- Brush Bristles -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M44,48 L37,55 L44,62 L42,64 L33,55 L42,46 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M64,48 L71,55 L64,62 L66,64 L75,55 L66,46 Z" />
+        android:pathData="M66,35 C68.5,37.5 69,40 67,42 L63,46 L58,41 L62,37 C64,35 64.5,33.5 66,35 Z" />
+    <!-- Wet Paint Tip (Gold & Cyan) -->
     <path
         android:fillColor="#38BDF8"
-        android:pathData="M56,45 L50,65 L48,65 L54,45 Z" />
+        android:pathData="M65.5,35.5 C67,37 67.5,38.5 66,40 L64.5,41.5 L62.5,39.5 L64,38 C65,37 64.8,36 65.5,35.5 Z" />
+    <!-- Brush Metal Ferrule -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M63,46 L58,41 L55,44 L60,49 Z" />
+    <!-- Brush Wood Handle -->
+    <path
+        android:strokeColor="#EA580C"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:pathData="M57.5,46.5 L73,62" />
+
+    <!-- 5. Paint Drops / Color Drops (CMYK Palette Dots) -->
+    <!-- Gold Drop -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M38,62 C38,64 36.5,65.5 34.5,65.5 C32.5,65.5 31,64 31,62 C31,60 34.5,57 34.5,57 C34.5,57 38,60 38,62 Z" />
+    <!-- Cyan Drop -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M76,52 C76,54 74.5,55.5 72.5,55.5 C70.5,55.5 69,54 69,52 C69,50 72.5,47 72.5,47 C72.5,47 76,50 76,52 Z" />
+    <!-- Green Drop -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M43,30 C43,31.5 41.8,32.8 40.3,32.8 C38.8,32.8 37.5,31.5 37.5,30 C37.5,28.5 40.3,26 40.3,26 C40.3,26 43,28.5 43,30 Z" />
+    <!-- White Highlight Drop -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,30 C70,31.2 69,32.2 67.8,32.2 C66.5,32.2 65.5,31.2 65.5,30 C65.5,28.8 67.8,26.8 67.8,26.8 C67.8,26.8 70,28.8 70,30 Z" />
+
+    <!-- 6. Bottom Banner / Shield Plaque with "TNPA" Letters -->
+    <!-- Gold Banner Ribbon Background -->
+    <path
+        android:fillColor="#DC2626"
+        android:pathData="M34,68 L74,68 L71,77 L37,77 Z" />
+    <path
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="1.2"
+        android:pathData="M34,68 L74,68 L71,77 L37,77 Z" />
+
+    <!-- Letter T -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M41,70.5 H46 V71.8 H44.2 V75.5 H42.8 V71.8 H41 Z" />
+
+    <!-- Letter N -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47.5,70.5 H48.9 L51.2,74 V70.5 H52.4 V75.5 H51.1 L48.8,72 V75.5 H47.5 Z" />
+
+    <!-- Letter P -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,70.5 H56.8 C57.8,70.5 58.6,71.1 58.6,72.1 C58.6,73.1 57.8,73.7 56.8,73.7 H55.4 V75.5 H54 Z M55.4,71.7 V72.6 H56.6 C57,72.6 57.3,72.4 57.3,72.1 C57.3,71.9 57,71.7 56.6,71.7 Z" />
+
+    <!-- Letter A -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M61.8,70.5 H63.4 L65.5,75.5 H64.1 L63.6,74.3 H61.5 L61,75.5 H59.7 Z M62,73.2 H63.2 L62.6,71.6 Z" />
+
 </vector>

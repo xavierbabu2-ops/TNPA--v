@@ -26,11 +26,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.HealthAndSafety
@@ -41,10 +43,16 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.VideoCall
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.filled.WorkspacePremium
@@ -60,7 +68,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,6 +93,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.AdminApprovalRepository
 import com.example.model.StateLeaderItem
+import com.example.ui.components.AppDownloadModal
+import com.example.ui.components.DashboardMemberSearchBarAndDirectory
 import com.example.ui.components.TnpaOfficialEmblem
 import com.example.ui.components.TnpaOfficialFlagBanner
 import com.example.ui.theme.TnpaCharcoal
@@ -101,6 +114,7 @@ fun HomeScreen(
   onNavigateToTab: (Int) -> Unit
 ) {
   val context = LocalContext.current
+  var showDownloadModal by remember { mutableStateOf(false) }
 
   Column(
     modifier = Modifier
@@ -227,6 +241,112 @@ fun HomeScreen(
     }
 
     // ========================================================================
+    // 2.2. APP DOWNLOAD & DISTRIBUTION CARD (டிஎன்பிஏ மொபைல் செயலி டவுன்லோடு)
+    // ========================================================================
+    Card(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 14.dp),
+      shape = RoundedCornerShape(14.dp),
+      colors = CardDefaults.cardColors(
+        containerColor = Color(0xFF0F172A) // Sleek Dark Slate
+      ),
+      border = androidx.compose.foundation.BorderStroke(1.5.dp, TnpaGold)
+    ) {
+      Column(
+        modifier = Modifier.padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+              modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(TnpaGold.copy(alpha = 0.2f)),
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                Icons.Default.Android,
+                contentDescription = null,
+                tint = TnpaGold,
+                modifier = Modifier.size(22.dp)
+              )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+              Text(
+                text = "டிஎன்பிஏ மொபைல் செயலி (TNPA App)",
+                color = TnpaPureWhite,
+                fontWeight = FontWeight.Black,
+                fontSize = 14.sp
+              )
+              Text(
+                text = "அனைத்து தொழிலாளர்களுக்கும் இலவச ஆண்ட்ராய்டு ஆப்",
+                color = Color(0xFFCBD5E1),
+                fontSize = 11.sp
+              )
+            }
+          }
+
+          Box(
+            modifier = Modifier
+              .clip(RoundedCornerShape(4.dp))
+              .background(TnpaGold)
+              .padding(horizontal = 6.dp, vertical = 2.dp)
+          ) {
+            Text("v2.4.0 APK", color = TnpaJetBlack, fontSize = 9.sp, fontWeight = FontWeight.Black)
+          }
+        }
+
+        Text(
+          text = "அனைத்து உறுப்பினர்களும் நிர்வாகிகள், நலத்திட்டங்கள், நேரலை TV, AI வழிகாட்டி மற்றும் வீடியோ கான்பிரன்ஸ் ஆகியவற்றை ஒரே செயலியில் பெற உங்கள் போனில் டிஎன்பிஏ செயலியை டவுன்லோடு செய்து சக பெயிண்டர்களுடன் பகிருங்கள்.",
+          color = Color(0xFFE2E8F0),
+          fontSize = 11.sp,
+          lineHeight = 16.sp
+        )
+
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          Button(
+            onClick = { showDownloadModal = true },
+            modifier = Modifier
+              .weight(1f)
+              .height(38.dp)
+              .testTag("btn_home_download_apk"),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold)
+          ) {
+            Icon(Icons.Default.Download, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("செயலி டவுன்லோடு", fontSize = 12.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
+          }
+
+          OutlinedButton(
+            onClick = { showDownloadModal = true },
+            modifier = Modifier
+              .weight(1f)
+              .height(38.dp)
+              .testTag("btn_home_share_apk"),
+            shape = RoundedCornerShape(8.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF22C55E)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF22C55E))
+          ) {
+            Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF22C55E), modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("பகிர்வு & QR", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+          }
+        }
+      }
+    }
+
+    // ========================================================================
     // 3. MISSION STATEMENT BOX (கொள்கை & நோக்கங்கள்)
     // ========================================================================
     Card(
@@ -318,7 +438,7 @@ fun HomeScreen(
         }
 
         TextButton(
-          onClick = { onNavigateToTab(5) }, // Leadership Tab
+          onClick = { onNavigateToTab(7) }, // Leadership Tab (Index 7)
           modifier = Modifier.testTag("btn_view_all_leaders")
         ) {
           Text("அனைவரும் >", fontSize = 12.sp, color = TnpaRedPrimary, fontWeight = FontWeight.Bold)
@@ -329,10 +449,190 @@ fun HomeScreen(
       stateLeaders.forEach { leader ->
         StateLeaderProfileCard(leader = leader)
       }
+
+      // ========================================================================
+      // 4.1 EXECUTIVE VIDEO CONFERENCE CARD (மாநில • மண்டல • மாவட்ட • நகர • ஒன்றிய கான்பிரன்ஸ்)
+      // ========================================================================
+      Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, TnpaGold)
+      ) {
+        Column(
+          modifier = Modifier.padding(14.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Box(
+                modifier = Modifier
+                  .size(34.dp)
+                  .clip(CircleShape)
+                  .background(TnpaRedPrimary),
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(Icons.Default.VideoCall, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(20.dp))
+              }
+              Spacer(modifier = Modifier.width(10.dp))
+              Column {
+                Text(
+                  text = "நிர்வாகிகள் வீடியோ கான்பிரன்ஸ்",
+                  fontWeight = FontWeight.Black,
+                  fontSize = 13.sp,
+                  color = TnpaPureWhite
+                )
+                Text(
+                  text = "மாநில • மண்டல • மாவட்ட • நகர • ஒன்றிய மாநாடு",
+                  fontSize = 10.sp,
+                  color = TnpaGold,
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
+
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(TnpaRedPrimary)
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+              Text("🔴 LIVE ROOM", color = TnpaPureWhite, fontSize = 8.sp, fontWeight = FontWeight.Black)
+            }
+          }
+
+          Text(
+            text = "38 மாவட்ட, மண்டல, நகர மற்றும் ஒன்றிய பதிவு செய்யப்பட்ட நிர்வாகிகள் அனைவரும் ஒரே நேரத்தில் வீடியோ ஆலோசனைக் கூட்டத்தில் பங்கேற்கலாம்.",
+            color = Color(0xFFE2E8F0),
+            fontSize = 11.sp,
+            lineHeight = 16.sp
+          )
+
+          Button(
+            onClick = { onNavigateToTab(3) }, // Video Conference Tab (Index 3)
+            modifier = Modifier
+              .fillMaxWidth()
+              .height(42.dp)
+              .testTag("btn_home_join_video_conference"),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+              containerColor = TnpaRedPrimary,
+              contentColor = TnpaPureWhite
+            )
+          ) {
+            Icon(Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("வீடியோ கான்பிரன்சில் இணைய (Join Meeting)", fontSize = 12.sp, fontWeight = FontWeight.Black)
+          }
+        }
+      }
+
+      // ========================================================================
+      // 4.2 AI EXECUTIVE PERFORMANCE MONITORING & STRATEGY CARD (AI நிர்வாக வழிகாட்டி மையம்)
+      // ========================================================================
+      Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1B4B)), // Deep Indigo
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF818CF8))
+      ) {
+        Column(
+          modifier = Modifier.padding(14.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Box(
+                modifier = Modifier
+                  .size(34.dp)
+                  .clip(CircleShape)
+                  .background(Color(0xFF4F46E5)),
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(Icons.Default.Psychology, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(20.dp))
+              }
+              Spacer(modifier = Modifier.width(10.dp))
+              Column {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                  Text(
+                    text = "AI நிர்வாகிகள் வழிகாட்டி மையம்",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 13.sp,
+                    color = TnpaPureWhite
+                  )
+                  Box(
+                    modifier = Modifier
+                      .clip(RoundedCornerShape(4.dp))
+                      .background(Color(0xFF2563EB))
+                      .padding(horizontal = 4.dp, vertical = 1.dp)
+                  ) {
+                    Text("AI 3.5", color = TnpaPureWhite, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                  }
+                }
+                Text(
+                  text = "செயல்திறன் கண்காணிப்பு & கள ஆலோசனைகள்",
+                  fontSize = 10.sp,
+                  color = Color(0xFFA5B4FC),
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
+
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(Color(0xFF10B981))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+              Text("🤖 AI ACTIVE", color = TnpaPureWhite, fontSize = 8.sp, fontWeight = FontWeight.Black)
+            }
+          }
+
+          Text(
+            text = "ஒவ்வொரு மாநிலம், மாவட்டம், ஒன்றியம், நகர நிர்வாகிகளின் உறுப்பினர் சேர்க்கை, நலவாரியப் பதிவு மற்றும் கூட்டங்களை AI மூலம் துல்லியமாக கண்காணித்து கள ஆலோசனைகளை பெறலாம்.",
+            color = Color(0xFFE0E7FF),
+            fontSize = 11.sp,
+            lineHeight = 16.sp
+          )
+
+          Button(
+            onClick = { onNavigateToTab(4) }, // AI Monitoring Tab (Index 4)
+            modifier = Modifier
+              .fillMaxWidth()
+              .height(42.dp)
+              .testTag("btn_home_ai_monitoring"),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+              containerColor = Color(0xFF4F46E5),
+              contentColor = TnpaPureWhite
+            )
+          ) {
+            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("AI வழிகாட்டி & அறிக்கைகளை பார்க்க (Open AI Advisor)", fontSize = 12.sp, fontWeight = FontWeight.Black)
+          }
+        }
+      }
     }
 
     // ========================================================================
-    // 5. MEMBER SERVICES SECTION (உறுப்பினர் சேவைகள்)
+    // 5. DASHBOARD MEMBER & DISTRICT SEARCH BAR (உறுப்பினர்கள் தேடல் & பட்டியல்)
+    // ========================================================================
+    DashboardMemberSearchBarAndDirectory(
+      onNavigateToMemberRegistration = { onNavigateToTab(1) },
+      onNavigateToLeadership = { onNavigateToTab(7) }
+    )
+
+    // ========================================================================
+    // 5.1 MEMBER SERVICES QUICK TILES (உறுப்பினர் சேவைகள்)
     // ========================================================================
     Column(
       modifier = Modifier
@@ -482,7 +782,7 @@ fun HomeScreen(
         }
 
         Button(
-          onClick = { onNavigateToTab(4) }, // Welfare Tab
+          onClick = { onNavigateToTab(6) }, // Welfare Tab (Index 6)
           modifier = Modifier
             .fillMaxWidth()
             .height(46.dp)
@@ -549,7 +849,7 @@ fun HomeScreen(
         )
 
         Button(
-          onClick = { onNavigateToTab(2) }, // TV Tab
+          onClick = { onNavigateToTab(2) }, // TV Tab (Index 2)
           modifier = Modifier
             .fillMaxWidth()
             .height(46.dp)
@@ -635,7 +935,7 @@ fun HomeScreen(
           horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           Button(
-            onClick = { onNavigateToTab(6) }, // Jobs Tab (Employment)
+            onClick = { onNavigateToTab(7) }, // Leadership / Directory Tab (Index 7)
             modifier = Modifier.weight(1f).testTag("btn_home_jobs"),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E3A8A))
@@ -644,7 +944,7 @@ fun HomeScreen(
           }
 
           OutlinedButton(
-            onClick = { onNavigateToTab(6) },
+            onClick = { onNavigateToTab(7) },
             modifier = Modifier.weight(1f).testTag("btn_home_post_job"),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = TnpaRedDark)
@@ -689,7 +989,7 @@ fun HomeScreen(
           }
 
           OutlinedButton(
-            onClick = { onNavigateToTab(7) }, // Admin Management Tab
+            onClick = { onNavigateToTab(8) }, // Admin Management Tab (Index 8)
             colors = ButtonDefaults.outlinedButtonColors(contentColor = TnpaGold),
             border = androidx.compose.foundation.BorderStroke(1.dp, TnpaGold),
             shape = RoundedCornerShape(8.dp),
@@ -711,6 +1011,11 @@ fun HomeScreen(
         )
       }
     }
+  }
+
+  // App Download Modal
+  if (showDownloadModal) {
+    AppDownloadModal(onDismiss = { showDownloadModal = false })
   }
 }
 
@@ -752,47 +1057,19 @@ fun StateLeaderProfileCard(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.weight(1f)
       ) {
-        // Profile Photo / Avatar Frame
-        Box(
-          modifier = Modifier
-            .size(52.dp)
-            .clip(CircleShape)
-            .border(
-              width = if (leader.isTopLeader) 2.dp else 1.dp,
-              color = if (leader.isTopLeader) TnpaGold else badgeColor.copy(alpha = 0.5f),
-              shape = CircleShape
-            )
-            .background(
-              Brush.linearGradient(
-                colors = listOf(badgeColor, badgeColor.copy(alpha = 0.85f))
-              )
-            ),
-          contentAlignment = Alignment.Center
-        ) {
-          if (!leader.photoUrl.isNullOrBlank()) {
-            AsyncImage(
-              model = leader.photoUrl,
-              contentDescription = "Profile Photo of $safeName",
-              contentScale = ContentScale.Crop,
-              modifier = Modifier
-                .fillMaxSize()
-                .clip(CircleShape)
-            )
-          } else {
-            // High-contrast Fallback Avatar
-            Column(
-              horizontalAlignment = Alignment.CenterHorizontally,
-              verticalArrangement = Arrangement.Center
-            ) {
-              Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = if (leader.isTopLeader) TnpaGold else TnpaPureWhite,
-                modifier = Modifier.size(26.dp)
-              )
-            }
-          }
-        }
+        // High-Definition Leader Profile Photo with Laurel Ring & Zoom Modal on Tap
+        com.example.ui.components.LeaderProfilePhotoView(
+          photoUrl = leader.photoUrl,
+          fullName = safeName,
+          tamilName = safeName,
+          designation = "${leader.designationTamil} (${leader.designationEnglish})",
+          level = com.example.model.AdminHierarchyLevel.STATE,
+          district = safeLocation,
+          mobile = safeMobile,
+          size = 54.dp,
+          isTopLeader = leader.isTopLeader,
+          enableEnlargeOnClick = true
+        )
 
         Spacer(modifier = Modifier.width(12.dp))
 

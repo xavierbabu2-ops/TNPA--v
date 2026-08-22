@@ -308,17 +308,18 @@ fun TnpaOfficialFlagBanner(
         }
 
         Text(
-          text = "சிவப்பு & வெள்ளை இருவண்ண கொடி",
-          color = TnpaPureWhite,
-          fontSize = 12.sp,
-          fontWeight = FontWeight.Bold
+          text = "நமது சங்கம் நமது உரிமை",
+          color = TnpaGold,
+          fontSize = 13.sp,
+          fontWeight = FontWeight.Black
         )
 
         Text(
-          text = "மத்தியில் எழுச்சிமிகு தூரிகை & உருளை ஏந்திய TNPA² இலச்சினை",
-          color = Color(0xFFCBD5E1),
-          fontSize = 10.sp,
-          lineHeight = 14.sp
+          text = "தமிழ்நாடு ஓவியர்கள் & பெயிண்டர்கள் முன்னேற்ற சங்கம் (TN PA²)",
+          color = TnpaPureWhite,
+          fontSize = 11.sp,
+          fontWeight = FontWeight.Bold,
+          lineHeight = 15.sp
         )
       }
     }

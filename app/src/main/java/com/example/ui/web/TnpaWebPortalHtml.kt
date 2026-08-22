@@ -1107,7 +1107,7 @@ object TnpaWebPortalHtml {
     let webOfficersData = [
       { id: 'TNPA-OB-001', name: 'எஸ். மைக்கேல் ஆல்வின் (S. Michael Alvin)', role: 'மாநிலத் தலைவர் (Super Admin)', level: 'STATE', dist: 'மதுரை மாவட்டம் (HQ)', phone: '9789331681' },
       { id: 'TNPA-OB-002', name: 'சேவியர் பாபு (Xavier Babu)', role: 'மாநில பொதுச் செயலாளர் (Super Admin)', level: 'STATE', dist: 'மதுரை மாவட்டம் (HQ)', phone: '7010131915' },
-      { id: 'TNPA-OB-003', name: 'கே. வி. சுப்பிரமணியன்', role: 'மாநில பொருளாளர் (Treasurer)', level: 'STATE', dist: 'திருச்சிராப்பள்ளி (HQ)', phone: '9786123456' }
+      { id: 'TNPA-OB-003', name: 'சக்திவேல் (Sakthivel)', role: 'மாநில பொருளாளர் (Treasurer)', level: 'STATE', dist: 'திருச்சிராப்பள்ளி (HQ)', phone: '9080047281' }
     ];
 
     function filterWebOfficers(lvl) {

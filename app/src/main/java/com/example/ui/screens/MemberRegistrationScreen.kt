@@ -1,7 +1,10 @@
 package com.example.ui.screens
 
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Check
@@ -43,11 +47,13 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.FormatPaint
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
@@ -95,10 +101,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -106,6 +114,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.data.AdminApprovalRepository
 import com.example.data.FirestoreMemberRepository
 import com.example.model.MemberProfile
@@ -140,6 +149,22 @@ fun MemberRegistrationScreen(
   // Screen Tab Mode: 0 -> 4-Step Verified Registration, 1 -> Quick Form with Mandatory OTP, 2 -> Registered Members Directory
   var selectedRegistrationTab by remember { mutableIntStateOf(0) }
 
+  // Real-time Cloud Synchronization Listener
+  LaunchedEffect(Unit) {
+    firestoreRepo.observeMembersRealtime().collect { cloudMembers ->
+      if (cloudMembers.isNotEmpty()) {
+        cloudMembers.forEach { cm ->
+          val existingIdx = membersList.indexOfFirst { it.id == cm.id }
+          if (existingIdx != -1) {
+            membersList[existingIdx] = cm
+          } else {
+            membersList.add(0, cm)
+          }
+        }
+      }
+    }
+  }
+
   // Registration Stepper: 1 -> Personal Info, 2 -> Experience & Skills, 3 -> Contact Details, 4 -> Mandatory OTP Verification, 5 -> Digital ID Card
   var currentStep by remember { mutableIntStateOf(1) }
 
@@ -160,6 +185,7 @@ fun MemberRegistrationScreen(
   var email by remember { mutableStateOf("") }
   var district by remember { mutableStateOf("திருச்சிராப்பள்ளி (Trichy)") }
   var address by remember { mutableStateOf("") }
+  var selectedPhotoUri by remember { mutableStateOf<Uri?>(null) }
 
   // ================= MANDATORY FREE / NO-BILLING OTP ARCHITECTURE STATE =================
   var otpInput by remember { mutableStateOf("") }
@@ -295,7 +321,8 @@ fun MemberRegistrationScreen(
       bloodGroup = bloodGroup,
       joinedDate = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault()).format(Date()),
       status = "செயலில் உள்ளது (Active - OTP சரிபார்க்கப்பட்டது)",
-      isSyncedToFirestore = true
+      isSyncedToFirestore = true,
+      photoUri = selectedPhotoUri?.toString()
     )
 
     coroutineScope.launch {
@@ -324,6 +351,25 @@ fun MemberRegistrationScreen(
       currentStep = 5
       showQuickOtpModal = false
       errorMessage = null
+    }
+  }
+
+  // Update Member Photo handler for live ID card update and Firestore persistence
+  fun handlePhotoUpdated(memberId: String, newUri: Uri) {
+    val uriStr = newUri.toString()
+    if (createdMember?.id == memberId) {
+      createdMember = createdMember?.copy(photoUri = uriStr)
+    }
+    if (viewMemberCardModal?.id == memberId) {
+      viewMemberCardModal = viewMemberCardModal?.copy(photoUri = uriStr)
+    }
+    val idx = membersList.indexOfFirst { it.id == memberId }
+    if (idx != -1) {
+      val updated = membersList[idx].copy(photoUri = uriStr)
+      membersList[idx] = updated
+      coroutineScope.launch {
+        firestoreRepo.saveMember(updated)
+      }
     }
   }
 
@@ -602,6 +648,73 @@ fun MemberRegistrationScreen(
                     color = Color.DarkGray
                   )
 
+                  // Member Photo Picker Widget
+                  val step1PhotoLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetContent()
+                  ) { uri: Uri? ->
+                    if (uri != null) {
+                      selectedPhotoUri = uri
+                      Toast.makeText(context, "✅ உறுப்பினர் புகைப்படம் இணைக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+                    }
+                  }
+
+                  Card(
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .clickable { step1PhotoLauncher.launch("image/*") }
+                      .testTag("reg_step1_photo_picker"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = TnpaOffWhite),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, TnpaGold)
+                  ) {
+                    Row(
+                      modifier = Modifier.padding(12.dp),
+                      verticalAlignment = Alignment.CenterVertically
+                    ) {
+                      Box(
+                        modifier = Modifier
+                          .size(54.dp)
+                          .clip(RoundedCornerShape(8.dp))
+                          .background(TnpaJetBlack)
+                          .border(1.5.dp, TnpaGold, RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                      ) {
+                        if (selectedPhotoUri != null) {
+                          AsyncImage(
+                            model = selectedPhotoUri,
+                            contentDescription = "Selected Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                          )
+                        } else {
+                          Icon(Icons.Default.AddAPhoto, contentDescription = "Add Photo", tint = TnpaGold, modifier = Modifier.size(24.dp))
+                        }
+                      }
+
+                      Spacer(modifier = Modifier.width(12.dp))
+
+                      Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                          text = if (selectedPhotoUri != null) "உறுப்பினர் புகைப்படம் இணைக்கப்பட்டது ✓" else "உறுப்பினர் புகைப்படம் (Member Photo)",
+                          fontSize = 12.sp,
+                          fontWeight = FontWeight.Bold,
+                          color = TnpaJetBlack
+                        )
+                        Text(
+                          text = if (selectedPhotoUri != null) "🔄 புகைப்படத்தை மாற்ற தட்டவும்" else "📱 இன்டர்னல் ஸ்டோரேஜ் / கேலரி வழியாக இணைக்க தட்டவும்",
+                          fontSize = 10.sp,
+                          color = TnpaRedDark
+                        )
+                      }
+
+                      if (selectedPhotoUri != null) {
+                        IconButton(onClick = { selectedPhotoUri = null }) {
+                          Icon(Icons.Default.Close, contentDescription = "Remove Photo", tint = TnpaRedDark, modifier = Modifier.size(18.dp))
+                        }
+                      }
+                    }
+                  }
+
                   OutlinedTextField(
                     value = fullName,
                     onValueChange = { fullName = it; errorMessage = null },
@@ -610,7 +723,15 @@ fun MemberRegistrationScreen(
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = TnpaRedPrimary) },
                     modifier = Modifier.fillMaxWidth().testTag("input_member_fullname"),
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = TnpaRedPrimary, focusedLabelColor = TnpaRedPrimary)
+                    textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                      focusedTextColor = TnpaRedPrimary,
+                      unfocusedTextColor = TnpaRedDark,
+                      cursorColor = TnpaRedPrimary,
+                      focusedBorderColor = TnpaRedPrimary,
+                      focusedLabelColor = TnpaRedPrimary,
+                      unfocusedLabelColor = TnpaJetBlack
+                    )
                   )
 
                   OutlinedTextField(
@@ -621,7 +742,15 @@ fun MemberRegistrationScreen(
                     leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null, tint = TnpaRedPrimary) },
                     modifier = Modifier.fillMaxWidth().testTag("input_member_tamilname"),
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = TnpaRedPrimary, focusedLabelColor = TnpaRedPrimary)
+                    textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                      focusedTextColor = TnpaRedPrimary,
+                      unfocusedTextColor = TnpaRedDark,
+                      cursorColor = TnpaRedPrimary,
+                      focusedBorderColor = TnpaRedPrimary,
+                      focusedLabelColor = TnpaRedPrimary,
+                      unfocusedLabelColor = TnpaJetBlack
+                    )
                   )
 
                   Row(
@@ -641,7 +770,16 @@ fun MemberRegistrationScreen(
                       leadingIcon = { Icon(Icons.Default.Cake, contentDescription = null, tint = TnpaRedPrimary) },
                       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                       modifier = Modifier.weight(1f).testTag("input_member_age"),
-                      singleLine = true
+                      singleLine = true,
+                      textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                      colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TnpaRedPrimary,
+                        unfocusedTextColor = TnpaRedDark,
+                        cursorColor = TnpaRedPrimary,
+                        focusedBorderColor = TnpaRedPrimary,
+                        focusedLabelColor = TnpaRedPrimary,
+                        unfocusedLabelColor = TnpaJetBlack
+                      )
                     )
 
                     Column(modifier = Modifier.weight(1f)) {
@@ -710,7 +848,16 @@ fun MemberRegistrationScreen(
                     leadingIcon = { Icon(Icons.Default.Work, contentDescription = null, tint = TnpaRedPrimary) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth().testTag("input_member_experience"),
-                    singleLine = true
+                    singleLine = true,
+                    textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                      focusedTextColor = TnpaRedPrimary,
+                      unfocusedTextColor = TnpaRedDark,
+                      cursorColor = TnpaRedPrimary,
+                      focusedBorderColor = TnpaRedPrimary,
+                      focusedLabelColor = TnpaRedPrimary,
+                      unfocusedLabelColor = TnpaJetBlack
+                    )
                   )
 
                   Text(
@@ -813,7 +960,16 @@ fun MemberRegistrationScreen(
                     prefix = { Text("+91 ") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth().testTag("input_member_mobile"),
-                    singleLine = true
+                    singleLine = true,
+                    textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                      focusedTextColor = TnpaRedPrimary,
+                      unfocusedTextColor = TnpaRedDark,
+                      cursorColor = TnpaRedPrimary,
+                      focusedBorderColor = TnpaRedPrimary,
+                      focusedLabelColor = TnpaRedPrimary,
+                      unfocusedLabelColor = TnpaJetBlack
+                    )
                   )
 
                   Row(
@@ -1059,7 +1215,16 @@ fun MemberRegistrationScreen(
                         textAlign = TextAlign.Center,
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 4.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = TnpaRedPrimary
+                      ),
+                      colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TnpaRedPrimary,
+                        unfocusedTextColor = TnpaRedDark,
+                        cursorColor = TnpaRedPrimary,
+                        focusedBorderColor = TnpaRedPrimary,
+                        focusedLabelColor = TnpaRedPrimary,
+                        unfocusedLabelColor = TnpaJetBlack
                       )
                     )
 
@@ -1169,7 +1334,10 @@ fun MemberRegistrationScreen(
                       TnpaMemberIdCardView(
                         member = createdMember!!,
                         modelType = selectedIdCardModel,
-                        onModelChange = { selectedIdCardModel = it }
+                        onModelChange = { selectedIdCardModel = it },
+                        onPhotoUpdated = { newUri ->
+                          handlePhotoUpdated(createdMember!!.id, newUri)
+                        }
                       )
 
                       Button(
@@ -1252,6 +1420,73 @@ fun MemberRegistrationScreen(
                 }
               }
 
+              // Quick Photo Picker
+              val quickPhotoLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+              ) { uri: Uri? ->
+                if (uri != null) {
+                  selectedPhotoUri = uri
+                  Toast.makeText(context, "✅ உறுப்பினர் புகைப்படம் இணைக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+                }
+              }
+
+              Card(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .clickable { quickPhotoLauncher.launch("image/*") }
+                  .testTag("quick_photo_picker"),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = TnpaOffWhite),
+                border = androidx.compose.foundation.BorderStroke(1.dp, TnpaGold)
+              ) {
+                Row(
+                  modifier = Modifier.padding(10.dp),
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  Box(
+                    modifier = Modifier
+                      .size(50.dp)
+                      .clip(RoundedCornerShape(8.dp))
+                      .background(TnpaJetBlack)
+                      .border(1.5.dp, TnpaGold, RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    if (selectedPhotoUri != null) {
+                      AsyncImage(
+                        model = selectedPhotoUri,
+                        contentDescription = "Selected Photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                      )
+                    } else {
+                      Icon(Icons.Default.AddAPhoto, contentDescription = "Add Photo", tint = TnpaGold, modifier = Modifier.size(22.dp))
+                    }
+                  }
+
+                  Spacer(modifier = Modifier.width(10.dp))
+
+                  Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                      text = if (selectedPhotoUri != null) "புகைப்படம் இணைக்கப்பட்டது ✓" else "உறுப்பினர் புகைப்படம் இணைக்க (Member Photo)",
+                      fontSize = 11.sp,
+                      fontWeight = FontWeight.Bold,
+                      color = TnpaJetBlack
+                    )
+                    Text(
+                      text = if (selectedPhotoUri != null) "🔄 புகைப்படத்தை மாற்ற தட்டவும்" else "📱 இன்டர்னல் ஸ்டோரேஜ் / கேலரி வழியாக இணைக்க தட்டவும்",
+                      fontSize = 9.5.sp,
+                      color = TnpaRedDark
+                    )
+                  }
+
+                  if (selectedPhotoUri != null) {
+                    IconButton(onClick = { selectedPhotoUri = null }) {
+                      Icon(Icons.Default.Close, contentDescription = "Remove Photo", tint = TnpaRedDark, modifier = Modifier.size(16.dp))
+                    }
+                  }
+                }
+              }
+
               OutlinedTextField(
                 value = tamilName,
                 onValueChange = { tamilName = it; errorMessage = null },
@@ -1260,7 +1495,15 @@ fun MemberRegistrationScreen(
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = TnpaRedPrimary) },
                 modifier = Modifier.fillMaxWidth().testTag("quick_input_tamilname"),
                 singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = TnpaRedPrimary, focusedLabelColor = TnpaRedPrimary)
+                textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = TnpaRedPrimary,
+                  unfocusedTextColor = TnpaRedDark,
+                  cursorColor = TnpaRedPrimary,
+                  focusedBorderColor = TnpaRedPrimary,
+                  focusedLabelColor = TnpaRedPrimary,
+                  unfocusedLabelColor = TnpaJetBlack
+                )
               )
 
               OutlinedTextField(
@@ -1275,7 +1518,15 @@ fun MemberRegistrationScreen(
                 leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null, tint = TnpaRedPrimary) },
                 modifier = Modifier.fillMaxWidth().testTag("quick_input_fullname"),
                 singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = TnpaRedPrimary, focusedLabelColor = TnpaRedPrimary)
+                textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = TnpaRedPrimary,
+                  unfocusedTextColor = TnpaRedDark,
+                  cursorColor = TnpaRedPrimary,
+                  focusedBorderColor = TnpaRedPrimary,
+                  focusedLabelColor = TnpaRedPrimary,
+                  unfocusedLabelColor = TnpaJetBlack
+                )
               )
 
               Row(
@@ -1290,7 +1541,16 @@ fun MemberRegistrationScreen(
                   leadingIcon = { Icon(Icons.Default.Cake, contentDescription = null, tint = TnpaRedPrimary) },
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                   modifier = Modifier.weight(1f).testTag("quick_input_age"),
-                  singleLine = true
+                  singleLine = true,
+                  textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                  colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TnpaRedPrimary,
+                    unfocusedTextColor = TnpaRedDark,
+                    cursorColor = TnpaRedPrimary,
+                    focusedBorderColor = TnpaRedPrimary,
+                    focusedLabelColor = TnpaRedPrimary,
+                    unfocusedLabelColor = TnpaJetBlack
+                  )
                 )
 
                 OutlinedTextField(
@@ -1301,7 +1561,16 @@ fun MemberRegistrationScreen(
                   leadingIcon = { Icon(Icons.Default.Work, contentDescription = null, tint = TnpaRedPrimary) },
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                   modifier = Modifier.weight(1f).testTag("quick_input_experience"),
-                  singleLine = true
+                  singleLine = true,
+                  textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                  colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = TnpaRedPrimary,
+                    unfocusedTextColor = TnpaRedDark,
+                    cursorColor = TnpaRedPrimary,
+                    focusedBorderColor = TnpaRedPrimary,
+                    focusedLabelColor = TnpaRedPrimary,
+                    unfocusedLabelColor = TnpaJetBlack
+                  )
                 )
               }
 
@@ -1363,7 +1632,16 @@ fun MemberRegistrationScreen(
                 leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = TnpaRedPrimary) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth().testTag("quick_input_mobile"),
-                singleLine = true
+                singleLine = true,
+                textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = TnpaRedPrimary,
+                  unfocusedTextColor = TnpaRedDark,
+                  cursorColor = TnpaRedPrimary,
+                  focusedBorderColor = TnpaRedPrimary,
+                  focusedLabelColor = TnpaRedPrimary,
+                  unfocusedLabelColor = TnpaJetBlack
+                )
               )
 
               Text("தொழில் சிறப்புப் பிரிவு (Specialization):", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TnpaJetBlack)
@@ -1492,7 +1770,10 @@ fun MemberRegistrationScreen(
                 TnpaMemberIdCardView(
                   member = createdMember!!,
                   modelType = selectedIdCardModel,
-                  onModelChange = { selectedIdCardModel = it }
+                  onModelChange = { selectedIdCardModel = it },
+                  onPhotoUpdated = { newUri ->
+                    handlePhotoUpdated(createdMember!!.id, newUri)
+                  }
                 )
               }
             }
@@ -1628,7 +1909,10 @@ fun MemberRegistrationScreen(
           TnpaMemberIdCardView(
             member = viewMemberCardModal!!,
             modelType = selectedIdCardModel,
-            onModelChange = { selectedIdCardModel = it }
+            onModelChange = { selectedIdCardModel = it },
+            onPhotoUpdated = { newUri ->
+              handlePhotoUpdated(viewMemberCardModal!!.id, newUri)
+            }
           )
 
           Button(
@@ -1800,7 +2084,16 @@ fun MemberRegistrationScreen(
               textAlign = TextAlign.Center,
               fontFamily = FontFamily.Monospace,
               letterSpacing = 3.sp,
-              fontWeight = FontWeight.Bold
+              fontWeight = FontWeight.Bold,
+              color = TnpaRedPrimary
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+              focusedTextColor = TnpaRedPrimary,
+              unfocusedTextColor = TnpaRedDark,
+              cursorColor = TnpaRedPrimary,
+              focusedBorderColor = TnpaRedPrimary,
+              focusedLabelColor = TnpaRedPrimary,
+              unfocusedLabelColor = TnpaJetBlack
             )
           )
 
@@ -1918,7 +2211,7 @@ fun MemberDirectoryCard(
       modifier = Modifier.padding(14.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      // Avatar placeholder with Palette Initial
+      // Avatar with Photo or Initials
       Box(
         modifier = Modifier
           .size(48.dp)
@@ -1926,12 +2219,21 @@ fun MemberDirectoryCard(
           .background(Brush.linearGradient(listOf(TnpaRedPrimary, TnpaRedDark))),
         contentAlignment = Alignment.Center
       ) {
-        Text(
-          text = member.fullName.take(2).uppercase(),
-          color = TnpaPureWhite,
-          fontWeight = FontWeight.Black,
-          fontSize = 16.sp
-        )
+        if (!member.photoUri.isNullOrBlank()) {
+          AsyncImage(
+            model = member.photoUri,
+            contentDescription = member.fullName,
+            modifier = Modifier.fillMaxSize().clip(CircleShape),
+            contentScale = ContentScale.Crop
+          )
+        } else {
+          Text(
+            text = member.fullName.take(2).uppercase(),
+            color = TnpaPureWhite,
+            fontWeight = FontWeight.Black,
+            fontSize = 16.sp
+          )
+        }
       }
 
       Spacer(modifier = Modifier.width(12.dp))
@@ -2013,10 +2315,31 @@ fun MemberDirectoryCard(
 fun TnpaMemberIdCardView(
   member: MemberProfile,
   modelType: Int = 1,
-  onModelChange: ((Int) -> Unit)? = null
+  onModelChange: ((Int) -> Unit)? = null,
+  onPhotoUpdated: ((Uri) -> Unit)? = null
 ) {
   val context = LocalContext.current
   val clipboardManager = LocalClipboardManager.current
+
+  // Internal Storage Photo Picker Launcher
+  val photoPickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    if (uri != null) {
+      try {
+        try {
+          context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+          )
+        } catch (_: Exception) {}
+        onPhotoUpdated?.invoke(uri)
+        Toast.makeText(context, "✅ உறுப்பினர் புகைப்படம் புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+      } catch (e: Exception) {
+        onPhotoUpdated?.invoke(uri)
+      }
+    }
+  }
 
   fun shareCardDetails() {
     val shareText = """
@@ -2138,24 +2461,59 @@ fun TnpaMemberIdCardView(
               horizontalArrangement = Arrangement.spacedBy(10.dp),
               verticalAlignment = Alignment.CenterVertically
             ) {
-              // Photo Frame with Gold Border & Official Stamp
+              // Photo Frame with Gold Border & Official Stamp - Direct Photo Clickable
               Box(
                 modifier = Modifier
                   .size(80.dp)
                   .clip(RoundedCornerShape(10.dp))
                   .background(Brush.linearGradient(listOf(TnpaJetBlack, Color(0xFF1E293B))))
-                  .border(2.dp, TnpaGold, RoundedCornerShape(10.dp)),
+                  .border(2.dp, TnpaGold, RoundedCornerShape(10.dp))
+                  .clickable { photoPickerLauncher.launch("image/*") }
+                  .testTag("id_card_photo_frame_m1"),
                 contentAlignment = Alignment.Center
               ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                  Icon(Icons.Default.Person, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(38.dp))
+                if (!member.photoUri.isNullOrBlank()) {
+                  AsyncImage(
+                    model = member.photoUri,
+                    contentDescription = "Member Photo",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                  )
                   Box(
                     modifier = Modifier
+                      .align(Alignment.BottomCenter)
+                      .padding(bottom = 2.dp)
                       .clip(RoundedCornerShape(3.dp))
-                      .background(TnpaGold)
+                      .background(TnpaGold.copy(alpha = 0.95f))
                       .padding(horizontal = 4.dp, vertical = 1.dp)
                   ) {
                     Text("TNPA VERIFIED", color = TnpaJetBlack, fontSize = 7.sp, fontWeight = FontWeight.Black)
+                  }
+                  Box(
+                    modifier = Modifier
+                      .align(Alignment.TopEnd)
+                      .padding(2.dp)
+                      .size(16.dp)
+                      .clip(CircleShape)
+                      .background(TnpaJetBlack.copy(alpha = 0.75f)),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = "Edit Photo", tint = TnpaGold, modifier = Modifier.size(10.dp))
+                  }
+                } else {
+                  Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                  ) {
+                    Icon(Icons.Default.Person, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(38.dp))
+                    Box(
+                      modifier = Modifier
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(TnpaGold)
+                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                    ) {
+                      Text("TNPA VERIFIED", color = TnpaJetBlack, fontSize = 7.sp, fontWeight = FontWeight.Black)
+                    }
                   }
                 }
               }
@@ -2293,17 +2651,39 @@ fun TnpaMemberIdCardView(
               horizontalArrangement = Arrangement.spacedBy(12.dp),
               verticalAlignment = Alignment.CenterVertically
             ) {
-              // Smart Chip + Photo
+              // Smart Chip + Photo Frame
               Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                   modifier = Modifier
                     .size(68.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color(0xFF18181B))
-                    .border(1.dp, TnpaGold, RoundedCornerShape(8.dp)),
+                    .border(1.dp, TnpaGold, RoundedCornerShape(8.dp))
+                    .clickable { photoPickerLauncher.launch("image/*") }
+                    .testTag("id_card_photo_frame_m2"),
                   contentAlignment = Alignment.Center
                 ) {
-                  Text(member.fullName.take(2).uppercase(), color = TnpaGold, fontWeight = FontWeight.Black, fontSize = 22.sp)
+                  if (!member.photoUri.isNullOrBlank()) {
+                    AsyncImage(
+                      model = member.photoUri,
+                      contentDescription = "Member Photo",
+                      modifier = Modifier.fillMaxSize(),
+                      contentScale = ContentScale.Crop
+                    )
+                    Box(
+                      modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(2.dp)
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(TnpaJetBlack.copy(alpha = 0.75f)),
+                      contentAlignment = Alignment.Center
+                    ) {
+                      Icon(Icons.Default.PhotoCamera, contentDescription = "Edit Photo", tint = TnpaGold, modifier = Modifier.size(8.dp))
+                    }
+                  } else {
+                    Text(member.fullName.take(2).uppercase(), color = TnpaGold, fontWeight = FontWeight.Black, fontSize = 22.sp)
+                  }
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text("QR NFC PASS", color = TnpaGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
@@ -2361,10 +2741,32 @@ fun TnpaMemberIdCardView(
                 .size(64.dp)
                 .clip(CircleShape)
                 .background(TnpaRedPrimary)
-                .border(2.dp, TnpaGold, CircleShape),
+                .border(2.dp, TnpaGold, CircleShape)
+                .clickable { photoPickerLauncher.launch("image/*") }
+                .testTag("id_card_photo_frame_m3"),
               contentAlignment = Alignment.Center
             ) {
-              Text(member.fullName.take(2).uppercase(), color = TnpaPureWhite, fontWeight = FontWeight.Black, fontSize = 20.sp)
+              if (!member.photoUri.isNullOrBlank()) {
+                AsyncImage(
+                  model = member.photoUri,
+                  contentDescription = "Member Photo",
+                  modifier = Modifier.fillMaxSize().clip(CircleShape),
+                  contentScale = ContentScale.Crop
+                )
+                Box(
+                  modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(18.dp)
+                    .clip(CircleShape)
+                    .background(TnpaJetBlack)
+                    .border(1.dp, TnpaGold, CircleShape),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(Icons.Default.PhotoCamera, contentDescription = "Edit Photo", tint = TnpaGold, modifier = Modifier.size(10.dp))
+                }
+              } else {
+                Text(member.fullName.take(2).uppercase(), color = TnpaPureWhite, fontWeight = FontWeight.Black, fontSize = 20.sp)
+              }
             }
 
             Text(member.tamilName, fontSize = 15.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
@@ -2384,6 +2786,31 @@ fun TnpaMemberIdCardView(
           }
         }
       }
+    }
+
+    // Direct Photo Update Affordance Button
+    OutlinedButton(
+      onClick = { photoPickerLauncher.launch("image/*") },
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(38.dp)
+        .testTag("btn_change_id_photo"),
+      shape = RoundedCornerShape(8.dp),
+      border = androidx.compose.foundation.BorderStroke(1.dp, TnpaRedPrimary)
+    ) {
+      Icon(
+        imageVector = if (member.photoUri.isNullOrBlank()) Icons.Default.AddAPhoto else Icons.Default.PhotoCamera,
+        contentDescription = null,
+        tint = TnpaRedPrimary,
+        modifier = Modifier.size(16.dp)
+      )
+      Spacer(modifier = Modifier.width(6.dp))
+      Text(
+        text = if (member.photoUri.isNullOrBlank()) "📷 போட்டோவை இணைக்க (Upload Photo from Device)" else "🔄 புகைப்படத்தை மாற்றுக (Change Photo)",
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = TnpaRedPrimary
+      )
     }
 
     // Action Buttons Bar (Download, WhatsApp Share, Copy Details, Switch Model)

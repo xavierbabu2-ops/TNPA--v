@@ -23,6 +23,12 @@ val TnpaGoldDark = Color(0xFFB45309)
 val TnpaGreen = Color(0xFF10B981)
 val TnpaCyan = Color(0xFF06B6D4)
 
+// Neutral & Status Colors
+val TnpaBorderGray = Color(0xFFE2E8F0)
+val TnpaCharcoalDark = Color(0xFF334155)
+val TnpaLightGrayBg = Color(0xFFF8FAFC)
+val TnpaSuccessGreen = TnpaGreen
+
 // Compatibility aliases
 val TnpaRed = TnpaRedPrimary
 val TnpaNavy = TnpaJetBlack

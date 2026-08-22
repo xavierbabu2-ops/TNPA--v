@@ -45,7 +45,8 @@ data class MemberProfile(
   val status: String = "செயலில் உள்ளது (Active)",
   val bloodGroup: String = "O+",
   val specialization: String = "சுவர் ஓவியம் / பில்டிங் பெயிண்டிங் (Wall & Building)",
-  val isSyncedToFirestore: Boolean = true
+  val isSyncedToFirestore: Boolean = true,
+  val photoUri: String? = null
 )
 
 data class ArtItem(

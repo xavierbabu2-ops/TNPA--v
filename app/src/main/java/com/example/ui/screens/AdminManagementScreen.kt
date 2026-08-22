@@ -40,6 +40,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FormatPaint
@@ -103,6 +105,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -127,7 +130,9 @@ import com.example.model.StreamHealthReport
 import com.example.model.StreamStatus
 import com.example.model.WelfareAppStatus
 import com.example.model.WelfareApplicationItem
+import com.example.ui.components.AppDownloadModal
 import com.example.ui.components.TnpaOfficialEmblem
+import com.example.ui.screens.AdminExecutiveDashboardSubScreen
 import com.example.ui.theme.TnpaCyan
 import com.example.ui.theme.TnpaGold
 import com.example.ui.theme.TnpaGreen
@@ -148,6 +153,7 @@ fun AdminManagementScreen(
   streamStatus: StreamStatus,
   breakingNews: String,
   healthReport: StreamHealthReport?,
+  onNavigateToAiMonitoring: () -> Unit = {},
   onUpdateSettings: (String, String, String, String) -> Unit,
   onToggleBroadcast: (Boolean) -> Unit,
   onHealthStatusUpdated: (StreamStatus, StreamHealthReport) -> Unit
@@ -190,6 +196,7 @@ fun AdminManagementScreen(
         Toast.makeText(context, "பாதுகாப்பாக வெளியேறினீர்கள் (Logged Out)", Toast.LENGTH_SHORT).show()
       },
       onAdminUpdated = { refreshCount++ },
+      onNavigateToAiMonitoring = onNavigateToAiMonitoring,
       // Broadcast props for Super Admin
       rtmpUrl = rtmpUrl,
       streamKey = streamKey,
@@ -291,7 +298,7 @@ fun AdminLoginView(
       }
     }
 
-    // Role Hierarchy & Security Notice
+    // Role Hierarchy & Super Admin Credentials Display Card
     Card(
       modifier = Modifier
         .fillMaxWidth()
@@ -300,24 +307,82 @@ fun AdminLoginView(
       colors = CardDefaults.cardColors(containerColor = Color.White),
       border = CardDefaults.outlinedCardBorder().copy(brush = Brush.horizontalGradient(listOf(TnpaRedPrimary, TnpaGold)))
     ) {
-      Column(modifier = Modifier.padding(14.dp)) {
+      Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Icon(Icons.Default.Shield, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
           Spacer(modifier = Modifier.width(8.dp))
           Text(
-            text = "பாதுகாக்கப்பட்ட நிர்வாகி பகுதி (Authorized Access Only)",
+            text = "சூப்பர் அட்மின் மற்றும் நிர்வாகிகள் பாஸ்வேர்டு பட்டியல்:",
             color = TnpaJetBlack,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold
           )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-          text = "• Super Admin: மாநில பொதுச் செயலாளர் (முழு கட்டுப்பாட்டு அதிகாரம்)\n• State Admin: 7 அதிகாரப்பூர்வ மாநில நிர்வாகிகள் (அனைத்து மாவட்ட கண்காணிப்பு)\n• District Admin: 38 மாவட்டங்களுக்கான 114 நிர்வாகிகள் (மாவட்டத் தரவு தனிமைப்படுத்தல்)",
-          color = Color(0xFF475569),
-          fontSize = 11.sp,
-          lineHeight = 16.sp
-        )
+
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(8.dp),
+          colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+          border = androidx.compose.foundation.BorderStroke(1.dp, TnpaRedSoft)
+        ) {
+          Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+              text = "👑 Super Admin 1 (பொதுச் செயலாளர் - சேவியர் பாபு):",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Bold,
+              color = TnpaRedDark
+            )
+            Text(
+              text = "• Username: superadmin  |  Password: SuperAdmin@2026",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Black,
+              fontFamily = FontFamily.Monospace,
+              color = TnpaJetBlack
+            )
+            HorizontalDivider(color = Color(0xFFFECACA), modifier = Modifier.padding(vertical = 2.dp))
+            Text(
+              text = "👑 Super Admin 2 (மாநிலத் தலைவர் - மைக்கேல் ஆல்வின்):",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Bold,
+              color = Color(0xFFB45309)
+            )
+            Text(
+              text = "• Username: state.president  |  Password: President@2026",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Black,
+              fontFamily = FontFamily.Monospace,
+              color = TnpaJetBlack
+            )
+            HorizontalDivider(color = Color(0xFFFECACA), modifier = Modifier.padding(vertical = 2.dp))
+            Text(
+              text = "🏛️ State Treasurer (மாநில பொருளாளர் - சக்திவேல்):",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Bold,
+              color = Color(0xFF1E3A8A)
+            )
+            Text(
+              text = "• Username: state.treasurer  |  Setup Key: TNPA-ADM-7842-TRZ",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Black,
+              fontFamily = FontFamily.Monospace,
+              color = TnpaJetBlack
+            )
+            HorizontalDivider(color = Color(0xFFFECACA), modifier = Modifier.padding(vertical = 2.dp))
+            Text(
+              text = "🏢 District Admin (திருச்சி மாவட்டத் தலைவர்):",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Bold,
+              color = Color(0xFF15803D)
+            )
+            Text(
+              text = "• Username: trichy.president  |  Password: Trichy@2026",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Black,
+              fontFamily = FontFamily.Monospace,
+              color = TnpaJetBlack
+            )
+          }
+        }
       }
     }
 
@@ -379,7 +444,16 @@ fun AdminLoginView(
             .fillMaxWidth()
             .testTag("admin_username_field"),
           singleLine = true,
-          shape = RoundedCornerShape(10.dp)
+          shape = RoundedCornerShape(10.dp),
+          textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = TnpaRedPrimary,
+            unfocusedTextColor = TnpaRedDark,
+            cursorColor = TnpaRedPrimary,
+            focusedBorderColor = TnpaRedPrimary,
+            focusedLabelColor = TnpaRedPrimary,
+            unfocusedLabelColor = TnpaJetBlack
+          )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -407,7 +481,16 @@ fun AdminLoginView(
             .fillMaxWidth()
             .testTag("admin_password_field"),
           singleLine = true,
-          shape = RoundedCornerShape(10.dp)
+          shape = RoundedCornerShape(10.dp),
+          textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = TnpaRedPrimary,
+            unfocusedTextColor = TnpaRedDark,
+            cursorColor = TnpaRedPrimary,
+            focusedBorderColor = TnpaRedPrimary,
+            focusedLabelColor = TnpaRedPrimary,
+            unfocusedLabelColor = TnpaJetBlack
+          )
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -642,6 +725,7 @@ fun AdminAuthorizedDashboardView(
   admin: AdminAccount,
   onLogout: () -> Unit,
   onAdminUpdated: () -> Unit,
+  onNavigateToAiMonitoring: () -> Unit = {},
   rtmpUrl: String,
   streamKey: String,
   hlsUrl: String,
@@ -657,7 +741,7 @@ fun AdminAuthorizedDashboardView(
   val clipboardManager = LocalClipboardManager.current
 
   // Selected Dashboard Tab
-  // 0 -> Member Approvals, 1 -> Welfare Approvals, 2 -> Admin Hierarchy & Setup (Super Admin only), 3 -> Audit Logs, 4 -> Live Stream Control
+  // 0 -> Executive Dashboard, 1 -> Member Approvals, 2 -> Welfare Approvals, 3 -> Job Approvals, 4 -> Admin Hierarchy (Super Admin), 5 -> Audit Logs, 6 -> Live Stream Control (Super/State)
   var selectedTab by remember { mutableIntStateOf(0) }
 
   // Admin Management Modals (Super Admin)
@@ -665,6 +749,7 @@ fun AdminAuthorizedDashboardView(
   var showResetAccessModal by remember { mutableStateOf<AdminAccount?>(null) }
   var showChangeDistrictModal by remember { mutableStateOf<AdminAccount?>(null) }
   var generatedSetupKeyNotification by remember { mutableStateOf<Pair<String, String>?>(null) }
+  var showAppDownloadModal by remember { mutableStateOf(false) }
 
   Column(
     modifier = Modifier
@@ -722,17 +807,32 @@ fun AdminAuthorizedDashboardView(
             }
           }
 
-          // Logout Button
-          OutlinedButton(
-            onClick = onLogout,
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-            border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.horizontalGradient(listOf(Color.White, Color.LightGray))),
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.height(34.dp)
-          ) {
-            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("வெளியேறு", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+          // Top Header Action Buttons
+          Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            // APK Download & Distribution Shortcut Button
+            Button(
+              onClick = { showAppDownloadModal = true },
+              colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+              shape = RoundedCornerShape(8.dp),
+              modifier = Modifier.height(34.dp).testTag("btn_admin_top_apk_download")
+            ) {
+              Icon(Icons.Default.Download, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(4.dp))
+              Text("APK", fontSize = 11.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
+            }
+
+            // Logout Button
+            OutlinedButton(
+              onClick = onLogout,
+              colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+              border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.horizontalGradient(listOf(Color.White, Color.LightGray))),
+              shape = RoundedCornerShape(8.dp),
+              modifier = Modifier.height(34.dp)
+            ) {
+              Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(4.dp))
+              Text("வெளியேறு", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
           }
         }
 
@@ -774,45 +874,52 @@ fun AdminAuthorizedDashboardView(
       Tab(
         selected = selectedTab == 0,
         onClick = { selectedTab = 0 },
-        text = { Text("உறுப்பினர் ஒப்புதல்", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_members")
+        text = { Text("📊 டேஷ்போர்டு", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
+        icon = { Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(16.dp)) },
+        modifier = Modifier.testTag("admin_tab_dashboard")
       )
       Tab(
         selected = selectedTab == 1,
         onClick = { selectedTab = 1 },
-        text = { Text("நலத்திட்ட ஒப்புதல்", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_welfare")
+        text = { Text("உறுப்பினர் ஒப்புதல்", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
+        icon = { Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp)) },
+        modifier = Modifier.testTag("admin_tab_members")
       )
       Tab(
         selected = selectedTab == 2,
         onClick = { selectedTab = 2 },
-        text = { Text("வேலைவாய்ப்பு ஒப்புதல்", fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) },
+        text = { Text("நலத்திட்ட ஒப்புதல்", fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) },
+        icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
+        modifier = Modifier.testTag("admin_tab_welfare")
+      )
+      Tab(
+        selected = selectedTab == 3,
+        onClick = { selectedTab = 3 },
+        text = { Text("வேலைவாய்ப்பு ஒப்புதல்", fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Normal) },
         icon = { Icon(Icons.Default.Work, contentDescription = null, modifier = Modifier.size(16.dp)) },
         modifier = Modifier.testTag("admin_tab_jobs")
       )
       if (admin.role == AdminRole.SUPER_ADMIN) {
         Tab(
-          selected = selectedTab == 3,
-          onClick = { selectedTab = 3 },
-          text = { Text("நிர்வாகிகள் கட்டமைப்பு", fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Normal) },
+          selected = selectedTab == 4,
+          onClick = { selectedTab = 4 },
+          text = { Text("நிர்வாகிகள் கட்டமைப்பு", fontWeight = if (selectedTab == 4) FontWeight.Bold else FontWeight.Normal) },
           icon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp)) },
           modifier = Modifier.testTag("admin_tab_hierarchy")
         )
       }
       Tab(
-        selected = selectedTab == 4,
-        onClick = { selectedTab = 4 },
-        text = { Text("Audit Logs", fontWeight = if (selectedTab == 4) FontWeight.Bold else FontWeight.Normal) },
+        selected = selectedTab == 5,
+        onClick = { selectedTab = 5 },
+        text = { Text("Audit Logs", fontWeight = if (selectedTab == 5) FontWeight.Bold else FontWeight.Normal) },
         icon = { Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp)) },
         modifier = Modifier.testTag("admin_tab_audit")
       )
       if (admin.role == AdminRole.SUPER_ADMIN || admin.role == AdminRole.STATE_ADMIN) {
         Tab(
-          selected = selectedTab == 5,
-          onClick = { selectedTab = 5 },
-          text = { Text("TV நேரலை கட்டுப்பாடு", fontWeight = if (selectedTab == 5) FontWeight.Bold else FontWeight.Normal) },
+          selected = selectedTab == 6,
+          onClick = { selectedTab = 6 },
+          text = { Text("TV நேரலை கட்டுப்பாடு", fontWeight = if (selectedTab == 6) FontWeight.Bold else FontWeight.Normal) },
           icon = { Icon(Icons.Default.LiveTv, contentDescription = null, modifier = Modifier.size(16.dp)) },
           modifier = Modifier.testTag("admin_tab_tv")
         )
@@ -826,10 +933,18 @@ fun AdminAuthorizedDashboardView(
         .padding(12.dp)
     ) {
       when (selectedTab) {
-        0 -> MemberApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
-        1 -> WelfareApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
-        2 -> JobApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
-        3 -> {
+        0 -> AdminExecutiveDashboardSubScreen(
+          admin = admin,
+          onNavigateToTab = { selectedTab = it },
+          onNavigateToAiMonitoring = onNavigateToAiMonitoring,
+          streamStatus = streamStatus,
+          onOpenAppDownloadModal = { showAppDownloadModal = true },
+          onActionTaken = onAdminUpdated
+        )
+        1 -> MemberApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
+        2 -> WelfareApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
+        3 -> JobApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
+        4 -> {
           if (admin.role == AdminRole.SUPER_ADMIN) {
             AdminHierarchyManagementSubScreen(
               admin = admin,
@@ -845,8 +960,8 @@ fun AdminAuthorizedDashboardView(
             Text("அனுமதியில்லை (Unauthorized).")
           }
         }
-        4 -> AuditLogsSubScreen(admin = admin)
-        5 -> {
+        5 -> AuditLogsSubScreen(admin = admin)
+        6 -> {
           // Live TV Broadcast Control Screen
           AdminBroadcastControlScreen(
             rtmpUrl = rtmpUrl,
@@ -874,6 +989,11 @@ fun AdminAuthorizedDashboardView(
         }
       }
     }
+  }
+
+  // App Download Distribution Modal
+  if (showAppDownloadModal) {
+    AppDownloadModal(onDismiss = { showAppDownloadModal = false })
   }
 
   // --------------------------------------------------------------------------

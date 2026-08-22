@@ -28,9 +28,9 @@ val TnpaLightColorScheme: ColorScheme = lightColorScheme(
   background = TnpaOffWhite,
   onBackground = TnpaJetBlack,
   surface = TnpaPureWhite,
-  onSurface = TnpaJetBlack,
+  onSurface = TnpaRedPrimary,         // Red typed text color
   surfaceVariant = TnpaRedSoft,
-  onSurfaceVariant = TnpaCharcoal,
+  onSurfaceVariant = TnpaRedDark,
   outline = TnpaRedPrimary.copy(alpha = 0.35f),
   outlineVariant = TnpaBlackAccent.copy(alpha = 0.15f)
 )
@@ -49,9 +49,9 @@ val TnpaDarkColorScheme: ColorScheme = darkColorScheme(
   background = TnpaJetBlack,          // Accent Black #1A1A1A
   onBackground = TnpaPureWhite,
   surface = TnpaDarkCard,
-  onSurface = TnpaPureWhite,
+  onSurface = TnpaRedLight,           // Red typed text color
   surfaceVariant = TnpaBlackAccent,
-  onSurfaceVariant = Color(0xFFE2E8F0),
+  onSurfaceVariant = TnpaRedSoft,
   outline = TnpaRedPrimary,
   outlineVariant = TnpaCharcoal
 )

@@ -98,6 +98,8 @@ import com.example.model.AdminRole
 import com.example.model.AppointmentAuditLog
 import com.example.model.HierarchyOfficeBearer
 import com.example.model.TamilNaduMasterData
+import com.example.ui.components.LeaderPhotoAssets
+import com.example.ui.components.LeaderProfilePhotoView
 import com.example.ui.components.TnpaOfficialEmblem
 import com.example.ui.theme.TnpaCharcoal
 import com.example.ui.theme.TnpaGold
@@ -692,23 +694,19 @@ fun OfficeBearerCard(
         verticalAlignment = Alignment.CenterVertically
       ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-          // Avatar Circle with Gold border
-          Box(
-            modifier = Modifier
-              .size(52.dp)
-              .clip(CircleShape)
-              .background(Brush.linearGradient(listOf(TnpaJetBlack, TnpaRedPrimary)))
-              .border(2.dp, if (bearer.isActive) TnpaGold else Color.Gray, CircleShape),
-            contentAlignment = Alignment.Center
-          ) {
-            val initials = if (bearer.fullName.isNotBlank()) bearer.fullName.take(2).uppercase() else "TN"
-            Text(
-              text = initials,
-              color = TnpaPureWhite,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Black
-            )
-          }
+          // Leader Profile Photo with Laurel Ring & Tap to Enlarge Badge Modal
+          LeaderProfilePhotoView(
+            photoUrl = bearer.photoUrl,
+            fullName = bearer.fullName,
+            tamilName = bearer.tamilName,
+            designation = bearer.designation,
+            level = bearer.level,
+            district = bearer.district,
+            mobile = bearer.mobile,
+            size = 54.dp,
+            isTopLeader = bearer.level == AdminHierarchyLevel.STATE,
+            enableEnlargeOnClick = true
+          )
 
           Spacer(modifier = Modifier.width(10.dp))
 
@@ -903,6 +901,7 @@ fun AddOfficeBearerDialog(
   var fullName by remember { mutableStateOf("") }
   var mobile by remember { mutableStateOf("") }
   var altPhone by remember { mutableStateOf("") }
+  var photoUrl by remember { mutableStateOf("") }
   var appointmentReason by remember { mutableStateOf("சங்க விதிகளின்படி புதிய பொறுப்பாளர் நியமனம்") }
 
   // Designation suggestions based on level
@@ -1073,6 +1072,72 @@ fun AddOfficeBearerDialog(
           modifier = Modifier.fillMaxWidth()
         )
 
+        // Photo URL Input with live preview
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+          OutlinedTextField(
+            value = photoUrl,
+            onValueChange = { photoUrl = it },
+            label = { Text("புகைப்பட URL (Photo URL / Web Image)") },
+            placeholder = { Text("https://example.com/photo.jpg") },
+            modifier = Modifier.fillMaxWidth()
+          )
+
+          // Quick Photo Preset Suggestions
+          Text("புகைப்பட தேர்வு / Preset:", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+          Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+          ) {
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFFE2E8F0))
+                .clickable { photoUrl = LeaderPhotoAssets.DISTRICT_PRESIDENT_DEFAULT }
+                .padding(horizontal = 6.dp, vertical = 3.dp)
+            ) {
+              Text("தலைவர் படம் 1", fontSize = 9.5.sp, color = TnpaJetBlack)
+            }
+
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFFE2E8F0))
+                .clickable { photoUrl = LeaderPhotoAssets.DISTRICT_SECRETARY_DEFAULT }
+                .padding(horizontal = 6.dp, vertical = 3.dp)
+            ) {
+              Text("செயலாளர் படம் 2", fontSize = 9.5.sp, color = TnpaJetBlack)
+            }
+
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFFE2E8F0))
+                .clickable { photoUrl = LeaderPhotoAssets.YOUTH_WING_DEFAULT }
+                .padding(horizontal = 6.dp, vertical = 3.dp)
+            ) {
+              Text("இளைஞரணி படம் 3", fontSize = 9.5.sp, color = TnpaJetBlack)
+            }
+          }
+
+          if (photoUrl.isNotBlank()) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier.padding(top = 4.dp)
+            ) {
+              Text("Live Preview: ", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TnpaGreen)
+              LeaderProfilePhotoView(
+                photoUrl = photoUrl,
+                fullName = fullName,
+                tamilName = tamilName,
+                designation = designation,
+                level = level,
+                size = 36.dp,
+                enableEnlargeOnClick = false
+              )
+            }
+          }
+        }
+
         OutlinedTextField(
           value = appointmentReason,
           onValueChange = { appointmentReason = it },
@@ -1095,6 +1160,7 @@ fun AddOfficeBearerDialog(
             cityName = cityName,
             mobile = mobile,
             altPhone = altPhone,
+            photoUrl = photoUrl.trim().ifEmpty { LeaderPhotoAssets.getSuggestedPhotoForName(tamilName.ifBlank { fullName }, level) },
             appointedByAdmin = "$currentAdminName ($currentAdminRole)",
             isActive = true
           )

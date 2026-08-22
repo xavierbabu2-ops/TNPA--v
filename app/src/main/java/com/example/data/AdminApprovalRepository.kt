@@ -92,12 +92,12 @@ object AdminApprovalRepository {
     val stateTreasurer = AdminAccount(
       id = "STA-02",
       username = "state.treasurer",
-      fullName = "கே. வி. சுப்பிரமணியன் (மாநில பொருளாளர்)",
+      fullName = "சக்திவேல் (மாநில பொருளாளர்)",
       role = AdminRole.STATE_ADMIN,
       designation = PredefinedAdminPosts.STATE_ADMIN_POSTS[0], // மாநில பொருளாளர்
       assignedDistrict = null,
-      mobileNumber = "9786123456",
-      email = "treasurer@tnpa.org",
+      mobileNumber = "9080047281",
+      email = "sakthivel.treasurer@tnpa.org",
       status = AdminStatus.PENDING_VERIFICATION,
       passwordHash = "",
       salt = stateTreasurerSalt,
@@ -1261,7 +1261,7 @@ object AdminApprovalRepository {
         fullNameTamil = cleanFullName(president?.fullName).ifEmpty { "எஸ். மைக்கேல் ஆல்வின் (S. Michael Alvin)" },
         mobileNumber = president?.mobileNumber?.let { if (it.startsWith("+91")) it else "+91 $it" } ?: "+91 97893 31681",
         location = "அம்பலக்காரன் பட்டி, உத்தங்குடி போஸ்ட், மேலூர் மெயின் ரோடு, மதுரை - 625107",
-        photoUrl = null,
+        photoUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
         email = president?.email?.ifEmpty { "president@tnpa.org" },
         badgeThemeColorHex = 0xFFDC2626, // Red
         orderPriority = 1,
@@ -1274,7 +1274,7 @@ object AdminApprovalRepository {
         fullNameTamil = cleanFullName(superAdmin?.fullName).ifEmpty { "சேவியர் பாபு (Xavier Babu)" },
         mobileNumber = superAdmin?.mobileNumber?.let { if (it.startsWith("+91")) it else "+91 $it" } ?: "+91 70101 31915",
         location = "மதுரை மாவட்டம் (மாநில தலைமை அலுவலகம்)",
-        photoUrl = null,
+        photoUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
         email = superAdmin?.email?.ifEmpty { "xavierbabu2@gmail.com" },
         badgeThemeColorHex = 0xFF111827, // Jet Black
         orderPriority = 2,
@@ -1284,11 +1284,11 @@ object AdminApprovalRepository {
         id = "LEADER-TREASURER",
         designationTamil = "மாநில பொருளாளர்",
         designationEnglish = "State Treasurer",
-        fullNameTamil = cleanFullName(treasurer?.fullName).ifEmpty { "கே. வி. சுப்பிரமணியன் (K. V. Subramanian)" },
-        mobileNumber = treasurer?.mobileNumber?.let { if (it.startsWith("+91")) it else "+91 $it" } ?: "+91 97861 23456",
+        fullNameTamil = cleanFullName(treasurer?.fullName).ifEmpty { "சக்திவேல் (Sakthivel)" },
+        mobileNumber = treasurer?.mobileNumber?.let { if (it.startsWith("+91")) it else "+91 $it" } ?: "+91 90800 47281",
         location = "மத்திய மண்டல தலைமையகம்",
-        photoUrl = null,
-        email = treasurer?.email?.ifEmpty { "treasurer@tnpa.org" },
+        photoUrl = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
+        email = treasurer?.email?.ifEmpty { "sakthivel.treasurer@tnpa.org" },
         badgeThemeColorHex = 0xFF1E3A8A, // Deep Navy Blue
         orderPriority = 3,
         isTopLeader = false
