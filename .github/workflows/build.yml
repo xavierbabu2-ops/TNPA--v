@@ -31,25 +31,34 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK Licenses & Install API 36 Components
+      - name: Set up Android SDK & Accept Licenses
         run: |
+          export ANDROID_HOME="/usr/local/lib/android/sdk"
+          export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7dda1a06de4f3783664b1f63befb" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          echo -e "\n601085b94cd77f0b54ff864069570991500085d7" > "$ANDROID_HOME/licenses/android-googletv-license"
+          echo -e "\n33b6a2b64607f11b759f320ef9dff4ae5c47d97a" > "$ANDROID_HOME/licenses/google-gdk-license"
+          echo -e "\ne9acab5b5fbb560a72cfa4f27c30f8d108e8a3d3" > "$ANDROID_HOME/licenses/mips-android-sysimage-license"
           yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platforms;android-35" "build-tools;35.0.0" "platform-tools" || true
 
-      - name: Prepare Secrets and Signing Keystore
+      - name: Prepare Local Properties, Secrets and Keystore
         run: |
-          echo "" > .env
-          echo "" > .env.example
-          if [ ! -f debug.keystore ]; then
+          echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
+          touch .env .env.example
+          if [ -f debug.keystore.base64 ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+          elif [ ! -f debug.keystore ]; then
             keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
       - name: Build Debug APK with Gradle
         run: |
-          gradle :app:assembleDebug --no-daemon --no-configuration-cache --stacktrace
+          gradle :app:assembleDebug --no-daemon --no-configuration-cache --stacktrace --info
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
