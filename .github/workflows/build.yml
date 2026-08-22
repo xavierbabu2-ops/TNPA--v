@@ -34,31 +34,27 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Android SDK Licenses & Install Components
+      - name: Accept Android SDK Licenses & Install API 36 Components
         run: |
           yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" || true
 
-      - name: Create Mock/Default .env and debug keystore if missing
+      - name: Prepare Secrets and Signing Keystore
         run: |
-          if [ ! -f .env ]; then
-            touch .env
-          fi
-          if [ ! -f .env.example ]; then
-            touch .env.example
-          fi
+          echo "" > .env
+          echo "" > .env.example
           if [ ! -f debug.keystore ]; then
             keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
       - name: Build Debug APK with Gradle
         run: |
-          gradle assembleDebug --no-daemon --no-configuration-cache --stacktrace
+          gradle :app:assembleDebug --no-daemon --no-configuration-cache --stacktrace
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TNPA-Debug-APK
+          name: TNPA-Android-App-APK
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14

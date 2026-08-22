@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "TNPA²"
+rootProject.name = "TNPA"
 
 include(":app")
