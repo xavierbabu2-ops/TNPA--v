@@ -5,22 +5,31 @@ import com.example.model.MemberProfile
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class FirestoreMemberRepository {
   private val firestore: FirebaseFirestore by lazy {
     FirebaseFirestore.getInstance()
   }
 
-  suspend fun saveMember(member: MemberProfile): Result<String> {
-    return try {
+  private val repositoryScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+  suspend fun saveMember(member: MemberProfile): Result<String> = withContext(Dispatchers.IO + NonCancellable) {
+    try {
       val data = hashMapOf(
         "id" to member.id,
         "fullName" to member.fullName,
         "tamilName" to member.tamilName,
+        "fatherName" to member.fatherName,
         "age" to member.age,
         "experienceYears" to member.experienceYears,
         "mobile" to member.mobile,
@@ -45,6 +54,13 @@ class FirestoreMemberRepository {
     } catch (e: Exception) {
       Log.e("FirestoreMemberRepo", "Failed to save member to Firestore: ${e.message}", e)
       Result.failure(e)
+    }
+  }
+
+  fun saveMemberAsync(member: MemberProfile, onComplete: ((Result<String>) -> Unit)? = null) {
+    repositoryScope.launch {
+      val result = saveMember(member)
+      onComplete?.invoke(result)
     }
   }
 

@@ -1,0 +1,58 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="600dp"
+    android:height="360dp"
+    android:viewportWidth="600"
+    android:viewportHeight="360">
+
+    <!-- Card Background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0 H600 V360 H0 Z" />
+
+    <!-- Top Red Banner -->
+    <path
+        android:fillColor="#D80000"
+        android:pathData="M0,0 H600 V95 H0 Z" />
+
+    <!-- Top Red Header Bottom Border Gold Accent -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M0,95 H600 V97 H0 Z" />
+
+    <!-- Central TNPAA Watermark -->
+    <path
+        android:strokeColor="#DC2626"
+        android:strokeWidth="3"
+        android:strokeAlpha="0.12"
+        android:pathData="M300,215 A65,65 0 1,1 299.9,215 Z" />
+    <path
+        android:fillColor="#DC2626"
+        android:fillAlpha="0.10"
+        android:pathData="M285,175 L300,160 L315,175 L310,195 L290,195 Z" />
+    <path
+        android:fillColor="#DC2626"
+        android:fillAlpha="0.10"
+        android:pathData="M290,195 H310 V245 H290 Z" />
+
+    <!-- TN Govt Seal Outline circle on the right side -->
+    <path
+        android:strokeColor="#15803D"
+        android:strokeWidth="3"
+        android:fillColor="#F0FDF4"
+        android:pathData="M500,195 A40,40 0 1,1 499.9,195 Z" />
+    <!-- Temple Gopuram Icon inside seal -->
+    <path
+        android:fillColor="#F59E0B"
+        android:strokeColor="#B45309"
+        android:strokeWidth="1"
+        android:pathData="M490,205 L500,172 L510,205 Z" />
+    <path
+        android:fillColor="#DC2626"
+        android:pathData="M485,205 H515 V215 H485 Z" />
+
+    <!-- Bottom Red Footer Banner -->
+    <path
+        android:fillColor="#D80000"
+        android:pathData="M0,336 H600 V360 H0 Z" />
+
+</vector>

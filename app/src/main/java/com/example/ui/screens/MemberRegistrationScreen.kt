@@ -118,6 +118,7 @@ import coil.compose.AsyncImage
 import com.example.data.AdminApprovalRepository
 import com.example.data.FirestoreMemberRepository
 import com.example.model.MemberProfile
+import com.example.ui.components.OfficialTnpaIdCardComponent
 import com.example.ui.components.TnpaOfficialEmblem
 import com.example.ui.theme.TnpaCyan
 import com.example.ui.theme.TnpaGold
@@ -174,6 +175,7 @@ fun MemberRegistrationScreen(
   // Form Fields
   var fullName by remember { mutableStateOf("") }
   var tamilName by remember { mutableStateOf("") }
+  var fatherName by remember { mutableStateOf("") }
   var ageText by remember { mutableStateOf("") }
   var bloodGroup by remember { mutableStateOf("O+") }
   var experienceYearsText by remember { mutableStateOf("") }
@@ -309,6 +311,7 @@ fun MemberRegistrationScreen(
       id = newId,
       fullName = fullName,
       tamilName = tName,
+      fatherName = fatherName.trim(),
       age = ageNum,
       experienceYears = expYears,
       mobile = mobileNumber,
@@ -325,33 +328,34 @@ fun MemberRegistrationScreen(
       photoUri = selectedPhotoUri?.toString()
     )
 
-    coroutineScope.launch {
-      val result = firestoreRepo.saveMember(newProfile)
+    // Immediate UI update
+    createdMember = newProfile
+    onMemberAdded(newProfile)
+    currentStep = 5
+    showQuickOtpModal = false
+    errorMessage = null
+
+    // Asynchronous background cloud sync and admin approval queue
+    firestoreRepo.saveMemberAsync(newProfile) { result ->
       isSyncingToFirestore = false
       if (result.isSuccess) {
         firestoreSyncSuccess = true
-        Toast.makeText(context, "✅ Firebase Cloud-ல் உறுப்பினர் பதிவு வெற்றிகரமாக முடிந்தது!", Toast.LENGTH_SHORT).show()
       }
-      
-      // Automatically route Member ID application to Admin Approval Queue (Super, State, and District Admins)
-      AdminApprovalRepository.submitMemberForApproval(
-        memberId = newProfile.id,
-        fullName = newProfile.fullName,
-        tamilName = newProfile.tamilName,
-        mobile = newProfile.mobile,
-        district = newProfile.district,
-        designation = newProfile.designation,
-        specialization = newProfile.specialization,
-        experienceYears = newProfile.experienceYears,
-        bloodGroup = newProfile.bloodGroup
-      )
-
-      createdMember = newProfile
-      onMemberAdded(newProfile)
-      currentStep = 5
-      showQuickOtpModal = false
-      errorMessage = null
     }
+    
+    // Automatically route Member ID application to Admin Approval Queue (Super, State, and District Admins)
+    AdminApprovalRepository.submitMemberForApproval(
+      memberId = newProfile.id,
+      fullName = newProfile.fullName,
+      tamilName = newProfile.tamilName,
+      mobile = newProfile.mobile,
+      district = newProfile.district,
+      designation = newProfile.designation,
+      specialization = newProfile.specialization,
+      experienceYears = newProfile.experienceYears,
+      bloodGroup = newProfile.bloodGroup
+    )
+    Toast.makeText(context, "✅ உறுப்பினர் பதிவு வெற்றிகரமாக முடிந்தது!", Toast.LENGTH_SHORT).show()
   }
 
   // Update Member Photo handler for live ID card update and Firestore persistence
@@ -367,9 +371,7 @@ fun MemberRegistrationScreen(
     if (idx != -1) {
       val updated = membersList[idx].copy(photoUri = uriStr)
       membersList[idx] = updated
-      coroutineScope.launch {
-        firestoreRepo.saveMember(updated)
-      }
+      firestoreRepo.saveMemberAsync(updated)
     }
   }
 
@@ -712,6 +714,25 @@ fun MemberRegistrationScreen(
                     placeholder = { Text("எ.கா: சேவியர் பாபு / முருகன்") },
                     leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null, tint = TnpaRedPrimary) },
                     modifier = Modifier.fillMaxWidth().testTag("input_member_tamilname"),
+                    singleLine = true,
+                    textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                      focusedTextColor = TnpaRedPrimary,
+                      unfocusedTextColor = TnpaRedDark,
+                      cursorColor = TnpaRedPrimary,
+                      focusedBorderColor = TnpaRedPrimary,
+                      focusedLabelColor = TnpaRedPrimary,
+                      unfocusedLabelColor = TnpaJetBlack
+                    )
+                  )
+
+                  OutlinedTextField(
+                    value = fatherName,
+                    onValueChange = { fatherName = it },
+                    label = { Text("தந்தை / கணவர் பெயர் (Father's / Husband's Name) *") },
+                    placeholder = { Text("எ.கா: ராமசாமி / அந்தோணி") },
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = TnpaRedPrimary) },
+                    modifier = Modifier.fillMaxWidth().testTag("input_member_fathername"),
                     singleLine = true,
                     textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -1273,32 +1294,20 @@ fun MemberRegistrationScreen(
                         color = TnpaJetBlack
                       )
 
-                      // Model Switcher
+                      // Official ID Card Header Badge
                       Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier
+                          .clip(RoundedCornerShape(8.dp))
+                          .background(TnpaGold.copy(alpha = 0.15f))
+                          .padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
                       ) {
-                        listOf(
-                          1 to "மாதிரி 1 (Gold)",
-                          2 to "மாதிரி 2 (Smart)",
-                          3 to "மாதிரி 3 (Portrait)"
-                        ).forEach { (modelId, label) ->
-                          Box(
-                            modifier = Modifier
-                              .padding(horizontal = 4.dp)
-                              .clip(RoundedCornerShape(6.dp))
-                              .background(if (selectedIdCardModel == modelId) TnpaRedPrimary else TnpaOffWhite)
-                              .clickable { selectedIdCardModel = modelId }
-                              .padding(horizontal = 8.dp, vertical = 4.dp)
-                          ) {
-                            Text(
-                              text = label,
-                              color = if (selectedIdCardModel == modelId) TnpaPureWhite else TnpaJetBlack,
-                              fontSize = 10.sp,
-                              fontWeight = FontWeight.Bold
-                            )
-                          }
-                        }
+                        Text(
+                          text = "🪪 அசல் உறுப்பினர் அடையாள அட்டை (முன்பக்கம் & பின்பக்கம்)",
+                          color = TnpaRedDark,
+                          fontSize = 11.sp,
+                          fontWeight = FontWeight.Bold
+                        )
                       }
 
                       // Render Digital Membership ID Card
@@ -1488,6 +1497,25 @@ fun MemberRegistrationScreen(
                 placeholder = { Text("Xavier Babu / Murugan S") },
                 leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null, tint = TnpaRedPrimary) },
                 modifier = Modifier.fillMaxWidth().testTag("quick_input_fullname"),
+                singleLine = true,
+                textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                colors = OutlinedTextFieldDefaults.colors(
+                  focusedTextColor = TnpaRedPrimary,
+                  unfocusedTextColor = TnpaRedDark,
+                  cursorColor = TnpaRedPrimary,
+                  focusedBorderColor = TnpaRedPrimary,
+                  focusedLabelColor = TnpaRedPrimary,
+                  unfocusedLabelColor = TnpaJetBlack
+                )
+              )
+
+              OutlinedTextField(
+                value = fatherName,
+                onValueChange = { fatherName = it },
+                label = { Text("தந்தை / கணவர் பெயர் (Father's / Husband's Name) *") },
+                placeholder = { Text("எ.கா: ராமசாமி / அந்தோணி") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = TnpaRedPrimary) },
+                modifier = Modifier.fillMaxWidth().testTag("quick_input_fathername"),
                 singleLine = true,
                 textStyle = TextStyle(color = TnpaRedPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -1705,35 +1733,11 @@ fun MemberRegistrationScreen(
                     Icon(Icons.Default.CheckCircle, contentDescription = null, tint = TnpaGreen, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                      text = "அடையாள அட்டை தயார்!",
+                      text = "அசல் அடையாள அட்டை தயார்!",
                       style = MaterialTheme.typography.titleMedium,
                       fontWeight = FontWeight.Black,
                       color = TnpaJetBlack
                     )
-                  }
-
-                  // Card Model Switcher Pills
-                  Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    listOf(
-                      1 to "மாதிரி 1 (Gold)",
-                      2 to "மாதிரி 2 (Smart)",
-                      3 to "மாதிரி 3 (Portrait)"
-                    ).forEach { (modelId, label) ->
-                      Box(
-                        modifier = Modifier
-                          .clip(RoundedCornerShape(6.dp))
-                          .background(if (selectedIdCardModel == modelId) TnpaRedPrimary else TnpaOffWhite)
-                          .clickable { selectedIdCardModel = modelId }
-                          .padding(horizontal = 6.dp, vertical = 3.dp)
-                      ) {
-                        Text(
-                          text = label,
-                          color = if (selectedIdCardModel == modelId) TnpaPureWhite else TnpaJetBlack,
-                          fontSize = 9.sp,
-                          fontWeight = FontWeight.Bold
-                        )
-                      }
-                    }
                   }
                 }
 
@@ -1856,25 +1860,6 @@ fun MemberRegistrationScreen(
               fontWeight = FontWeight.Black,
               color = TnpaJetBlack
             )
-            // Model switcher
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              listOf(1 to "M1", 2 to "M2", 3 to "M3").forEach { (mId, lbl) ->
-                Box(
-                  modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(if (selectedIdCardModel == mId) TnpaRedPrimary else TnpaOffWhite)
-                    .clickable { selectedIdCardModel = mId }
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                  Text(
-                    text = lbl,
-                    color = if (selectedIdCardModel == mId) TnpaPureWhite else TnpaJetBlack,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                  )
-                }
-              }
-            }
           }
 
           TnpaMemberIdCardView(
@@ -2092,7 +2077,7 @@ fun MemberRegistrationScreen(
             } else {
               Icon(Icons.Default.VerifiedUser, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(16.dp))
               Spacer(modifier = Modifier.width(6.dp))
-              Text("🔒 OTP சரிபார்த்து ID அட்டை பெருக", fontWeight = FontWeight.Bold, color = TnpaPureWhite, fontSize = 12.sp)
+              Text("🔒 OTP சரிபார்த்து ID அட்டை பெறுக", fontWeight = FontWeight.Bold, color = TnpaPureWhite, fontSize = 12.sp)
             }
           }
 
@@ -2276,11 +2261,9 @@ fun MemberDirectoryCard(
 }
 
 /**
- * High-Fidelity Official Digital Membership ID Card Component
- * Supports 3 distinctive card models:
- * Model 1: Official Gold Border State Welfare Card
- * Model 2: Modern Crimson & Jet-Black Smart Pass
- * Model 3: Vertical Portrait Executive Badge
+ * Official TNPA Membership ID Card View
+ * Renders the genuine physical ID Card with Front & Back side views, registered photo,
+ * official emblem, leadership signatures, and sharing tools.
  */
 @Composable
 fun TnpaMemberIdCardView(
@@ -2289,539 +2272,8 @@ fun TnpaMemberIdCardView(
   onModelChange: ((Int) -> Unit)? = null,
   onPhotoUpdated: ((Uri) -> Unit)? = null
 ) {
-  val context = LocalContext.current
-  val clipboardManager = LocalClipboardManager.current
-
-  // Internal Storage Photo Picker Launcher
-  val photoPickerLauncher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.GetContent()
-  ) { uri: Uri? ->
-    if (uri != null) {
-      try {
-        try {
-          context.contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
-          )
-        } catch (_: Exception) {}
-        onPhotoUpdated?.invoke(uri)
-        Toast.makeText(context, "✅ உறுப்பினர் புகைப்படம் புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
-      } catch (e: Exception) {
-        onPhotoUpdated?.invoke(uri)
-      }
-    }
-  }
-
-  fun shareCardDetails() {
-    val shareText = """
-      🏛️ தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA)
-      -----------------------------------------
-      🪪 உறுப்பினர் அடையாள அட்டை (DIGITAL ID CARD)
-      -----------------------------------------
-      உறுப்பினர் எண்: ${member.id}
-      பெயர்: ${member.tamilName} (${member.fullName})
-      பதவி: ${member.designation}
-      தொழில் பிரிவு: ${member.specialization}
-      அனுபவம்: ${member.experienceYears} ஆண்டுகள் | வயது: ${member.age}
-      இரத்த பிரிவு: ${member.bloodGroup}
-      மாவட்டம்: ${member.district}
-      தொடர்பு: +91 ${member.mobile}
-      செல்லுபடியாகும் காலம்: 2026 - 2029
-      தொழிற்சங்க பதிவெண்: TNMDUJCLMDUTU-TNMDUJCLMDUTU-50-26-0044
-      -----------------------------------------
-      தமிழ்நாடு உடலுழைப்பு தொழிலாளர்கள் நலவாரியம் அங்கீகரித்தது.
-      உழைப்பே உயர்வு • கலையே நமது அடையாளம்!
-    """.trimIndent()
-
-    val intent = Intent(Intent.ACTION_SEND).apply {
-      type = "text/plain"
-      putExtra(Intent.EXTRA_SUBJECT, "TNPA Digital ID Card - ${member.tamilName}")
-      putExtra(Intent.EXTRA_TEXT, shareText)
-    }
-    context.startActivity(Intent.createChooser(intent, "உறுப்பினர் அட்டையைப் பகிர்க"))
-  }
-
-  fun copyCardDetails() {
-    val cardData = "TNPA ID: ${member.id}\nபெயர்: ${member.tamilName} (${member.fullName})\nமாவட்டம்: ${member.district}\nதொழில்: ${member.specialization}\nதொடர்பு: +91 ${member.mobile}"
-    clipboardManager.setText(AnnotatedString(cardData))
-    Toast.makeText(context, "அட்டை விவரங்கள் நகலெடுக்கப்பட்டது (Copied)", Toast.LENGTH_SHORT).show()
-  }
-
-  Column(
-    modifier = Modifier.fillMaxWidth(),
-    verticalArrangement = Arrangement.spacedBy(10.dp)
-  ) {
-    when (modelType) {
-      1 -> {
-        // ================= MODEL 1: OFFICIAL GOLD BORDER WELFARE CARD =================
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(16.dp),
-          colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
-          border = androidx.compose.foundation.BorderStroke(2.5.dp, TnpaGold)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .background(
-                Brush.verticalGradient(
-                  listOf(TnpaPureWhite, Color(0xFFFFFBEB), TnpaRedSoft.copy(alpha = 0.3f), TnpaPureWhite)
-                )
-              )
-              .padding(12.dp)
-          ) {
-            // Header with Official Logo, Title & Welfare Board Endorsement
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-              Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                TnpaOfficialEmblem(sizeDp = 42.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                  Text(
-                    text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம்",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Black,
-                    color = TnpaJetBlack,
-                    lineHeight = 14.sp
-                  )
-                  Text(
-                    text = "TAMIL NADU PAINTERS & ARTISTS ASSOCIATION",
-                    fontSize = 8.sp,
-                    color = TnpaRedDark,
-                    fontWeight = FontWeight.Bold
-                  )
-                  Text(
-                    text = "தொழிற்சங்க பதிவெண்: TNMDUJCLMDUTU-TNMDUJCLMDUTU-50-26-0044",
-                    fontSize = 7.5.sp,
-                    color = Color.DarkGray,
-                    fontWeight = FontWeight.Bold
-                  )
-                }
-              }
-
-              // ID Tag
-              Box(
-                modifier = Modifier
-                  .clip(RoundedCornerShape(6.dp))
-                  .background(TnpaJetBlack)
-                  .border(1.dp, TnpaGold, RoundedCornerShape(6.dp))
-                  .padding(horizontal = 7.dp, vertical = 3.dp)
-              ) {
-                Text(
-                  text = member.id,
-                  color = TnpaGold,
-                  fontSize = 10.sp,
-                  fontWeight = FontWeight.Black,
-                  fontFamily = FontFamily.Monospace
-                )
-              }
-            }
-
-            HorizontalDivider(
-              modifier = Modifier.padding(vertical = 6.dp),
-              color = TnpaGold.copy(alpha = 0.6f),
-              thickness = 1.5.dp
-            )
-
-            // Card Body Grid
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(10.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              // Photo Frame with Gold Border & Official Stamp - Direct Photo Clickable
-              Box(
-                modifier = Modifier
-                  .size(80.dp)
-                  .clip(RoundedCornerShape(10.dp))
-                  .background(Brush.linearGradient(listOf(TnpaJetBlack, Color(0xFF1E293B))))
-                  .border(2.dp, TnpaGold, RoundedCornerShape(10.dp))
-                  .clickable { photoPickerLauncher.launch("image/*") }
-                  .testTag("id_card_photo_frame_m1"),
-                contentAlignment = Alignment.Center
-              ) {
-                if (!member.photoUri.isNullOrBlank()) {
-                  AsyncImage(
-                    model = member.photoUri,
-                    contentDescription = "Member Photo",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                  )
-                  Box(
-                    modifier = Modifier
-                      .align(Alignment.BottomCenter)
-                      .padding(bottom = 2.dp)
-                      .clip(RoundedCornerShape(3.dp))
-                      .background(TnpaGold.copy(alpha = 0.95f))
-                      .padding(horizontal = 4.dp, vertical = 1.dp)
-                  ) {
-                    Text("TNPA VERIFIED", color = TnpaJetBlack, fontSize = 7.sp, fontWeight = FontWeight.Black)
-                  }
-                  Box(
-                    modifier = Modifier
-                      .align(Alignment.TopEnd)
-                      .padding(2.dp)
-                      .size(16.dp)
-                      .clip(CircleShape)
-                      .background(TnpaJetBlack.copy(alpha = 0.75f)),
-                    contentAlignment = Alignment.Center
-                  ) {
-                    Icon(Icons.Default.PhotoCamera, contentDescription = "Edit Photo", tint = TnpaGold, modifier = Modifier.size(10.dp))
-                  }
-                } else {
-                  Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                  ) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(38.dp))
-                    Box(
-                      modifier = Modifier
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(TnpaGold)
-                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                    ) {
-                      Text("TNPA VERIFIED", color = TnpaJetBlack, fontSize = 7.sp, fontWeight = FontWeight.Black)
-                    }
-                  }
-                }
-              }
-
-              // Credentials
-              Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Text(
-                    text = member.tamilName,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Black,
-                    color = TnpaJetBlack
-                  )
-                  Spacer(modifier = Modifier.width(6.dp))
-                  Box(
-                    modifier = Modifier
-                      .clip(RoundedCornerShape(4.dp))
-                      .background(TnpaRedPrimary)
-                      .padding(horizontal = 4.dp, vertical = 1.dp)
-                  ) {
-                    Text(
-                      text = "🩸 ${member.bloodGroup}",
-                      color = TnpaPureWhite,
-                      fontSize = 9.sp,
-                      fontWeight = FontWeight.Bold
-                    )
-                  }
-                }
-
-                Text(
-                  text = "${member.fullName} (${member.designation})",
-                  fontSize = 10.sp,
-                  color = Color.DarkGray,
-                  fontWeight = FontWeight.SemiBold
-                )
-
-                Text(
-                  text = "தொழில்: ${member.specialization}",
-                  fontSize = 10.sp,
-                  color = TnpaRedDark,
-                  fontWeight = FontWeight.Bold,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                  Text("வயது: ${member.age} yrs", fontSize = 10.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
-                  Text("அனுபவம்: ${member.experienceYears} yrs", fontSize = 10.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
-                }
-
-                Text(
-                  text = "மாவட்டம்: ${member.district} | +91 ${member.mobile}",
-                  fontSize = 10.sp,
-                  color = TnpaJetBlack,
-                  fontWeight = FontWeight.SemiBold
-                )
-              }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Signature & Security Bar
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(TnpaJetBlack)
-                .padding(horizontal = 8.dp, vertical = 5.dp),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Verified, contentDescription = null, tint = TnpaGreen, modifier = Modifier.size(13.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("செல்லத்தக்கது: 2026 - 2029", color = TnpaPureWhite, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-              }
-              Text(
-                text = "✍️ மாநில தலைவர் / செயலாளர் கையொப்பம்",
-                color = TnpaGold,
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Bold
-              )
-            }
-          }
-        }
-      }
-
-      2 -> {
-        // ================= MODEL 2: MODERN CRIMSON & JET-BLACK SMART PASS =================
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(16.dp),
-          colors = CardDefaults.cardColors(containerColor = TnpaJetBlack),
-          border = androidx.compose.foundation.BorderStroke(2.dp, TnpaRedPrimary)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .background(
-                Brush.linearGradient(
-                  colors = listOf(TnpaJetBlack, Color(0xFF2A0808), TnpaJetBlack)
-                )
-              )
-              .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-          ) {
-            // Header
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                TnpaOfficialEmblem(sizeDp = 38.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                  Text("TNPA² SMART PASS", color = TnpaPureWhite, fontWeight = FontWeight.Black, fontSize = 13.sp)
-                  Text("தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)", color = TnpaRedSoft, fontSize = 8.sp, maxLines = 1)
-                }
-              }
-              Box(
-                modifier = Modifier
-                  .clip(RoundedCornerShape(4.dp))
-                  .background(TnpaRedPrimary)
-                  .padding(horizontal = 6.dp, vertical = 2.dp)
-              ) {
-                Text(member.id, color = TnpaPureWhite, fontSize = 10.sp, fontWeight = FontWeight.Black)
-              }
-            }
-
-            HorizontalDivider(color = TnpaRedPrimary.copy(alpha = 0.5f))
-
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              // Smart Chip + Photo Frame
-              Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                  modifier = Modifier
-                    .size(68.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF18181B))
-                    .border(1.dp, TnpaGold, RoundedCornerShape(8.dp))
-                    .clickable { photoPickerLauncher.launch("image/*") }
-                    .testTag("id_card_photo_frame_m2"),
-                  contentAlignment = Alignment.Center
-                ) {
-                  if (!member.photoUri.isNullOrBlank()) {
-                    AsyncImage(
-                      model = member.photoUri,
-                      contentDescription = "Member Photo",
-                      modifier = Modifier.fillMaxSize(),
-                      contentScale = ContentScale.Crop
-                    )
-                    Box(
-                      modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(2.dp)
-                        .size(14.dp)
-                        .clip(CircleShape)
-                        .background(TnpaJetBlack.copy(alpha = 0.75f)),
-                      contentAlignment = Alignment.Center
-                    ) {
-                      Icon(Icons.Default.PhotoCamera, contentDescription = "Edit Photo", tint = TnpaGold, modifier = Modifier.size(8.dp))
-                    }
-                  } else {
-                    Text(member.fullName.take(2).uppercase(), color = TnpaGold, fontWeight = FontWeight.Black, fontSize = 22.sp)
-                  }
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text("QR NFC PASS", color = TnpaGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-              }
-
-              Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(member.tamilName, color = TnpaPureWhite, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                Text(member.fullName, color = Color.LightGray, fontSize = 11.sp)
-                Text("🎨 ${member.specialization}", color = TnpaGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                Text("📍 ${member.district} • 🩸 ${member.bloodGroup}", color = TnpaPureWhite, fontSize = 10.sp)
-                Text("📞 +91 ${member.mobile}", color = TnpaCyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-              }
-            }
-
-            // Bottom Barcode Stripe
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Text("|||||| | || ||||| |||| ||", color = TnpaPureWhite, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
-              Text("VALID 2026-2029 • AUTH SIGNED", color = TnpaGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-            }
-          }
-        }
-      }
-
-      3 -> {
-        // ================= MODEL 3: PORTRAIT EXECUTIVE ID =================
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(16.dp),
-          colors = CardDefaults.cardColors(containerColor = TnpaPureWhite),
-          border = androidx.compose.foundation.BorderStroke(2.dp, TnpaRedPrimary)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-          ) {
-            TnpaOfficialEmblem(sizeDp = 48.dp)
-            Text(
-              text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
-              fontSize = 11.sp,
-              fontWeight = FontWeight.Black,
-              color = TnpaJetBlack,
-              textAlign = TextAlign.Center
-            )
-            Text("உறுப்பினர் அடையாள அட்டை (EXECUTIVE BADGE)", fontSize = 9.sp, color = TnpaRedDark, fontWeight = FontWeight.Bold)
-
-            Box(
-              modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(TnpaRedPrimary)
-                .border(2.dp, TnpaGold, CircleShape)
-                .clickable { photoPickerLauncher.launch("image/*") }
-                .testTag("id_card_photo_frame_m3"),
-              contentAlignment = Alignment.Center
-            ) {
-              if (!member.photoUri.isNullOrBlank()) {
-                AsyncImage(
-                  model = member.photoUri,
-                  contentDescription = "Member Photo",
-                  modifier = Modifier.fillMaxSize().clip(CircleShape),
-                  contentScale = ContentScale.Crop
-                )
-                Box(
-                  modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(18.dp)
-                    .clip(CircleShape)
-                    .background(TnpaJetBlack)
-                    .border(1.dp, TnpaGold, CircleShape),
-                  contentAlignment = Alignment.Center
-                ) {
-                  Icon(Icons.Default.PhotoCamera, contentDescription = "Edit Photo", tint = TnpaGold, modifier = Modifier.size(10.dp))
-                }
-              } else {
-                Text(member.fullName.take(2).uppercase(), color = TnpaPureWhite, fontWeight = FontWeight.Black, fontSize = 20.sp)
-              }
-            }
-
-            Text(member.tamilName, fontSize = 15.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
-            Text(member.fullName, fontSize = 11.sp, color = Color.DarkGray)
-
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(TnpaJetBlack)
-                .padding(horizontal = 10.dp, vertical = 3.dp)
-            ) {
-              Text(member.id, color = TnpaGold, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-            }
-
-            Text("துறை: ${member.specialization}", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TnpaRedPrimary)
-            Text("மாவட்டம்: ${member.district} • 🩸 ${member.bloodGroup} • 📞 +91 ${member.mobile}", fontSize = 10.sp, color = TnpaJetBlack)
-          }
-        }
-      }
-    }
-
-    // Direct Photo Update Affordance Button
-    OutlinedButton(
-      onClick = { photoPickerLauncher.launch("image/*") },
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(38.dp)
-        .testTag("btn_change_id_photo"),
-      shape = RoundedCornerShape(8.dp),
-      border = androidx.compose.foundation.BorderStroke(1.dp, TnpaRedPrimary)
-    ) {
-      Icon(
-        imageVector = if (member.photoUri.isNullOrBlank()) Icons.Default.AddAPhoto else Icons.Default.PhotoCamera,
-        contentDescription = null,
-        tint = TnpaRedPrimary,
-        modifier = Modifier.size(16.dp)
-      )
-      Spacer(modifier = Modifier.width(6.dp))
-      Text(
-        text = if (member.photoUri.isNullOrBlank()) "📷 போட்டோவை இணைக்க (Upload Photo from Device)" else "🔄 புகைப்படத்தை மாற்றுக (Change Photo)",
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        color = TnpaRedPrimary
-      )
-    }
-
-    // Action Buttons Bar (Download, WhatsApp Share, Copy Details, Switch Model)
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-      Button(
-        onClick = {
-          Toast.makeText(context, "💾 ${member.id} அடையாள அட்டை சாதனத்தில் சேமிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
-        },
-        modifier = Modifier.weight(1f).height(42.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = TnpaGreen)
-      ) {
-        Icon(Icons.Default.Download, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(16.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text("பதிவிறக்கு", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TnpaPureWhite)
-      }
-
-      Button(
-        onClick = { shareCardDetails() },
-        modifier = Modifier.weight(1f).height(42.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary)
-      ) {
-        Icon(Icons.Default.Share, contentDescription = null, tint = TnpaPureWhite, modifier = Modifier.size(16.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text("வாட்ஸ்அப் பகிர்", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TnpaPureWhite)
-      }
-
-      OutlinedButton(
-        onClick = { copyCardDetails() },
-        modifier = Modifier.weight(0.8f).height(42.dp),
-        shape = RoundedCornerShape(8.dp)
-      ) {
-        Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
-        Spacer(modifier = Modifier.width(3.dp))
-        Text("நகல்", fontSize = 11.sp)
-      }
-    }
-  }
+  OfficialTnpaIdCardComponent(
+    member = member,
+    onPhotoUpdated = onPhotoUpdated
+  )
 }

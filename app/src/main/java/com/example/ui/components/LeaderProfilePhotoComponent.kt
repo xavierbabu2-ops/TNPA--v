@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.SubcomposeAsyncImage
+import com.example.data.OfficialAssetsManager
 import com.example.model.AdminHierarchyLevel
 import com.example.ui.theme.TnpaCharcoal
 import com.example.ui.theme.TnpaGold
@@ -93,6 +94,22 @@ object LeaderPhotoAssets {
   const val DISTRICT_PRESIDENT_DEFAULT = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&auto=format&fit=crop&q=80"
   const val DISTRICT_SECRETARY_DEFAULT = "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80"
   const val YOUTH_WING_DEFAULT = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80"
+
+  fun getCustomPhotoForLeader(name: String, designation: String = ""): String? {
+    val search = "$name $designation".lowercase()
+    return when {
+      search.contains("ஆல்வின்") || search.contains("alvin") || (search.contains("தலைவர்") && !search.contains("மாவட்ட")) || (search.contains("president") && !search.contains("district")) -> {
+        OfficialAssetsManager.presidentPhotoUri.value
+      }
+      search.contains("சேவியர்") || search.contains("xavier") || search.contains("பொதுச் செயலாளர்") || search.contains("general secretary") -> {
+        OfficialAssetsManager.generalSecPhotoUri.value
+      }
+      search.contains("சக்திவேல்") || search.contains("sakthivel") || search.contains("பொருளாளர்") || search.contains("treasurer") -> {
+        OfficialAssetsManager.treasurerPhotoUri.value
+      }
+      else -> null
+    }
+  }
 
   fun getLocalDrawableForLeader(name: String, designation: String = ""): Int? {
     val search = "$name $designation".lowercase()
@@ -146,9 +163,12 @@ fun LeaderProfilePhotoView(
   var showFullPhotoModal by remember { mutableStateOf(false) }
 
   // Resolved local drawable or photo URL
+  val customLeaderUri = LeaderPhotoAssets.getCustomPhotoForLeader(fullName.ifBlank { tamilName }, designation)
   val localDrawableId = LeaderPhotoAssets.getLocalDrawableForLeader(fullName.ifBlank { tamilName }, designation)
-  val isCustomUploadedPhoto = !photoUrl.isNullOrBlank() && !photoUrl.startsWith("https://images.unsplash.com")
-  val effectivePhotoUrl = if (isCustomUploadedPhoto) {
+  val isCustomUploadedPhoto = (!photoUrl.isNullOrBlank() && !photoUrl.startsWith("https://images.unsplash.com")) || !customLeaderUri.isNullOrBlank()
+  val effectivePhotoUrl = if (!customLeaderUri.isNullOrBlank()) {
+    customLeaderUri
+  } else if (isCustomUploadedPhoto) {
     photoUrl
   } else if (localDrawableId != null) {
     null // Handled directly via localDrawableId

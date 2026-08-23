@@ -33,6 +33,7 @@ data class MemberProfile(
   val id: String,
   val fullName: String,
   val tamilName: String,
+  val fatherName: String = "",
   val age: Int = 32,
   val experienceYears: Int = 8,
   val mobile: String,

@@ -5,18 +5,15 @@
     android:viewportWidth="256"
     android:viewportHeight="256">
 
-    <!-- Background Golden-Amber Gradient Plate -->
+    <!-- Background Dark Studio with Red & Gold Glow -->
     <path
-        android:fillColor="#F59E0B"
+        android:fillColor="#090D16"
         android:pathData="M0,0 H256 V256 H0 Z" />
     <path
-        android:fillColor="#D97706"
-        android:pathData="M0,128 L256,256 H0 Z" />
-    <!-- Tamil Nadu State Silhouette Contour in BG -->
-    <path
-        android:fillColor="#DC2626"
-        android:fillAlpha="0.3"
-        android:pathData="M20,50 C50,25 90,35 115,75 C110,120 85,150 65,200 C35,170 15,100 20,50 Z" />
+        android:strokeColor="#EF4444"
+        android:strokeWidth="2"
+        android:strokeAlpha="0.4"
+        android:pathData="M128,115 A95,95 0 1,1 127.9,115 Z" />
 
     <!-- Shoulders & White Shirt -->
     <path
@@ -43,17 +40,43 @@
         android:strokeColor="#CBD5E1"
         android:strokeWidth="1.2"
         android:pathData="M162,175 L134,210 L172,188 Z" />
-    <!-- Placket & Buttons -->
+
+    <!-- Folded Hands (Anjali Mudra / Vanakkam) -->
+    <!-- Forearms in White Sleeves -->
     <path
-        android:strokeColor="#CBD5E1"
-        android:strokeWidth="2"
-        android:pathData="M128,210 V256" />
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#E2E8F0"
+        android:strokeWidth="1.5"
+        android:pathData="M48,256 L95,225 L108,245 L65,256 Z" />
     <path
-        android:fillColor="#475569"
-        android:pathData="M128,228 A2.5,2.5 0 1,1 127.9,228 Z" />
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#E2E8F0"
+        android:strokeWidth="1.5"
+        android:pathData="M208,256 L161,225 L148,245 L191,256 Z" />
+    <!-- Wrists & Forearms Skin -->
     <path
-        android:fillColor="#475569"
-        android:pathData="M128,248 A2.5,2.5 0 1,1 127.9,248 Z" />
+        android:fillColor="#9A3412"
+        android:pathData="M92,228 L118,198 L124,204 L98,236 Z" />
+    <path
+        android:fillColor="#9A3412"
+        android:pathData="M164,228 L138,198 L132,204 L158,236 Z" />
+    <!-- Folded Palms and Fingers Joined in Prayer / Respect -->
+    <path
+        android:fillColor="#D97706"
+        android:strokeColor="#78350F"
+        android:strokeWidth="1.2"
+        android:pathData="M118,192 C120,165 128,155 128,155 C128,155 136,165 138,192 C138,206 132,215 128,216 C124,215 118,206 118,192 Z" />
+    <!-- Finger Dividing Creases -->
+    <path
+        android:strokeColor="#78350F"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M128,157 V208" />
+    <path
+        android:strokeColor="#B45309"
+        android:strokeWidth="1"
+        android:strokeLineCap="round"
+        android:pathData="M123,178 L128,172 L133,178" />
 
     <!-- Neck -->
     <path

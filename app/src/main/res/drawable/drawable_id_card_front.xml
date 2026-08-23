@@ -1,0 +1,71 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="600dp"
+    android:height="360dp"
+    android:viewportWidth="600"
+    android:viewportHeight="360">
+
+    <!-- Card Background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0 H600 V360 H0 Z" />
+
+    <!-- Top Red Banner -->
+    <path
+        android:fillColor="#D80000"
+        android:pathData="M0,0 H600 V95 H0 Z" />
+
+    <!-- Top Red Header Bottom Border Gold Accent -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M0,95 H600 V97 H0 Z" />
+
+    <!-- Watermark in Center of Body -->
+    <!-- Watermark Circle -->
+    <path
+        android:strokeColor="#DC2626"
+        android:strokeWidth="3"
+        android:strokeAlpha="0.12"
+        android:pathData="M300,215 A65,65 0 1,1 299.9,215 Z" />
+    <!-- Watermark Raised Fist & Brush -->
+    <path
+        android:fillColor="#DC2626"
+        android:fillAlpha="0.10"
+        android:pathData="M285,175 L300,160 L315,175 L310,195 L290,195 Z" />
+    <path
+        android:fillColor="#DC2626"
+        android:fillAlpha="0.10"
+        android:pathData="M290,195 H310 V245 H290 Z" />
+
+    <!-- Photo Box on the Right -->
+    <path
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:fillColor="#F8FAFC"
+        android:pathData="M430,118 H548 V260 H430 Z" />
+
+    <!-- Bottom Red Footer Banner -->
+    <path
+        android:fillColor="#D80000"
+        android:pathData="M0,332 H600 V360 H0 Z" />
+
+    <!-- Signatures Decorative Line / Guides -->
+    <!-- President Signature Line -->
+    <path
+        android:strokeColor="#1E293B"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M110,312 C115,302 125,300 135,308 C145,316 150,305 160,314" />
+    <!-- General Secretary Signature Line -->
+    <path
+        android:strokeColor="#1E293B"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M275,310 C280,300 295,302 305,312 C315,308 325,305 345,310" />
+    <!-- Treasurer Signature Line -->
+    <path
+        android:strokeColor="#1E293B"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M460,312 C470,302 485,304 500,314 C510,308 525,305 540,310" />
+
+</vector>

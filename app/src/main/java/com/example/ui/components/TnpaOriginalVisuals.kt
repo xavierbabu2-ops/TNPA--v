@@ -1,5 +1,10 @@
 package com.example.ui.components
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,6 +16,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,6 +28,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,11 +36,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
 import com.example.R
+import com.example.data.OfficialAssetsManager
 import com.example.ui.theme.*
 
 /**
- * High-fidelity, authentic visual representations for TNPA official assets:
+ * Authentic, real visual representations for TNPA official assets:
  * 1. மாநில பொதுச் செயலாளர் (State General Secretary - சேவியர் பாபு)
  * 2. மாநில பொருளாளர் (State Treasurer - சக்திவேல்)
  * 3. சங்கத்தின் லோகோ (TNPA² Official Association Logo)
@@ -42,6 +56,8 @@ fun TnpaOriginalLogo(
   modifier: Modifier = Modifier,
   size: Dp = 80.dp
 ) {
+  val customLogoUri by OfficialAssetsManager.logoUri.collectAsState()
+
   Box(
     modifier = modifier
       .size(size)
@@ -52,12 +68,21 @@ fun TnpaOriginalLogo(
       .testTag("tnpa_original_logo"),
     contentAlignment = Alignment.Center
   ) {
-    Image(
-      painter = painterResource(id = R.drawable.drawable_tnpa_logo),
-      contentDescription = "தமிழ்நாடு பெயிண்டர்கள் ஓவியர்கள் முன்னேற்ற சங்கம் - அதிகாரப்பூர்வ லோகோ",
-      modifier = Modifier.fillMaxSize(),
-      contentScale = ContentScale.Fit
-    )
+    if (!customLogoUri.isNullOrBlank()) {
+      AsyncImage(
+        model = customLogoUri,
+        contentDescription = "தமிழ்நாடு பெயிண்டர்கள் ஓவியர்கள் முன்னேற்ற சங்கம் - அதிகாரப்பூர்வ லோகோ",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Fit
+      )
+    } else {
+      Image(
+        painter = painterResource(id = R.drawable.drawable_tnpa_logo),
+        contentDescription = "தமிழ்நாடு பெயிண்டர்கள் ஓவியர்கள் முன்னேற்ற சங்கம் - அதிகாரப்பூர்வ லோகோ",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Fit
+      )
+    }
   }
 }
 
@@ -66,6 +91,8 @@ fun TnpaOriginalFlag(
   modifier: Modifier = Modifier,
   size: Dp = 90.dp
 ) {
+  val customFlagUri by OfficialAssetsManager.flagUri.collectAsState()
+
   Box(
     modifier = modifier
       .size(size)
@@ -76,12 +103,21 @@ fun TnpaOriginalFlag(
       .testTag("tnpa_original_flag"),
     contentAlignment = Alignment.Center
   ) {
-    Image(
-      painter = painterResource(id = R.drawable.drawable_tnpa_flag),
-      contentDescription = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கக் கொடி",
-      modifier = Modifier.fillMaxSize().padding(4.dp),
-      contentScale = ContentScale.Fit
-    )
+    if (!customFlagUri.isNullOrBlank()) {
+      AsyncImage(
+        model = customFlagUri,
+        contentDescription = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கக் கொடி",
+        modifier = Modifier.fillMaxSize().padding(4.dp),
+        contentScale = ContentScale.Fit
+      )
+    } else {
+      Image(
+        painter = painterResource(id = R.drawable.drawable_tnpa_flag),
+        contentDescription = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கக் கொடி",
+        modifier = Modifier.fillMaxSize().padding(4.dp),
+        contentScale = ContentScale.Fit
+      )
+    }
   }
 }
 
@@ -91,6 +127,8 @@ fun StatePresidentPortrait(
   size: Dp = 90.dp,
   showBorder: Boolean = true
 ) {
+  val customPresidentUri by OfficialAssetsManager.presidentPhotoUri.collectAsState()
+
   Box(
     modifier = modifier
       .size(size)
@@ -105,12 +143,21 @@ fun StatePresidentPortrait(
       .testTag("portrait_state_president"),
     contentAlignment = Alignment.Center
   ) {
-    Image(
-      painter = painterResource(id = R.drawable.drawable_state_president),
-      contentDescription = "மாநிலத் தலைவர் எஸ். மைக்கேல் ஆல்வின்",
-      modifier = Modifier.fillMaxSize(),
-      contentScale = ContentScale.Crop
-    )
+    if (!customPresidentUri.isNullOrBlank()) {
+      AsyncImage(
+        model = customPresidentUri,
+        contentDescription = "மாநிலத் தலைவர் எஸ். மைக்கேல் ஆல்வின்",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+    } else {
+      Image(
+        painter = painterResource(id = R.drawable.drawable_state_president),
+        contentDescription = "மாநிலத் தலைவர் எஸ். மைக்கேல் ஆல்வின்",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+    }
   }
 }
 
@@ -120,6 +167,8 @@ fun StateGeneralSecretaryPortrait(
   size: Dp = 90.dp,
   showBorder: Boolean = true
 ) {
+  val customGenSecUri by OfficialAssetsManager.generalSecPhotoUri.collectAsState()
+
   Box(
     modifier = modifier
       .size(size)
@@ -134,12 +183,21 @@ fun StateGeneralSecretaryPortrait(
       .testTag("portrait_state_general_secretary"),
     contentAlignment = Alignment.Center
   ) {
-    Image(
-      painter = painterResource(id = R.drawable.drawable_state_general_secretary),
-      contentDescription = "மாநில பொதுச் செயலாளர் சேவியர் பாபு",
-      modifier = Modifier.fillMaxSize(),
-      contentScale = ContentScale.Crop
-    )
+    if (!customGenSecUri.isNullOrBlank()) {
+      AsyncImage(
+        model = customGenSecUri,
+        contentDescription = "மாநில பொதுச் செயலாளர் சேவியர் பாபு",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+    } else {
+      Image(
+        painter = painterResource(id = R.drawable.drawable_state_general_secretary),
+        contentDescription = "மாநில பொதுச் செயலாளர் சேவியர் பாபு",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+    }
   }
 }
 
@@ -149,6 +207,8 @@ fun StateTreasurerPortrait(
   size: Dp = 90.dp,
   showBorder: Boolean = true
 ) {
+  val customTreasurerUri by OfficialAssetsManager.treasurerPhotoUri.collectAsState()
+
   Box(
     modifier = modifier
       .size(size)
@@ -163,23 +223,76 @@ fun StateTreasurerPortrait(
       .testTag("portrait_state_treasurer"),
     contentAlignment = Alignment.Center
   ) {
-    Image(
-      painter = painterResource(id = R.drawable.drawable_state_treasurer),
-      contentDescription = "மாநில பொருளாளர் சக்திவேல்",
-      modifier = Modifier.fillMaxSize(),
-      contentScale = ContentScale.Crop
-    )
+    if (!customTreasurerUri.isNullOrBlank()) {
+      AsyncImage(
+        model = customTreasurerUri,
+        contentDescription = "மாநில பொருளாளர் சக்திவேல்",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+    } else {
+      Image(
+        painter = painterResource(id = R.drawable.drawable_state_treasurer),
+        contentDescription = "மாநில பொருளாளர் சக்திவேல்",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+    }
   }
 }
 
 /**
- * Grand Leadership Trio Card showing all 3 State Leaders with authentic visuals
+ * Grand Leadership Trio Card showing all 3 State Leaders with authentic visuals and photo upload options
  */
 @Composable
 fun StateLeadershipGrandShowcase(
   modifier: Modifier = Modifier,
   onLeaderClick: (leaderType: String) -> Unit = {}
 ) {
+  val context = LocalContext.current
+  var selectedUploadTarget by remember { mutableStateOf<String?>(null) }
+
+  // Photo Picker Launcher for Leaders, Logo, Flag
+  val photoPickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    if (uri != null) {
+      try {
+        try {
+          context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+          )
+        } catch (_: Exception) {}
+
+        when (selectedUploadTarget) {
+          "president" -> {
+            OfficialAssetsManager.setPresidentPhoto(uri)
+            Toast.makeText(context, "✅ மாநிலத் தலைவர் அசல் புகைப்படம் புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+          }
+          "secretary" -> {
+            OfficialAssetsManager.setGeneralSecPhoto(uri)
+            Toast.makeText(context, "✅ மாநில பொதுச் செயலாளர் அசல் புகைப்படம் புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+          }
+          "treasurer" -> {
+            OfficialAssetsManager.setTreasurerPhoto(uri)
+            Toast.makeText(context, "✅ மாநில பொருளாளர் அசல் புகைப்படம் புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+          }
+          "logo" -> {
+            OfficialAssetsManager.setLogo(uri)
+            Toast.makeText(context, "✅ சங்கத்தின் அசல் லோகோ புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+          }
+          "flag" -> {
+            OfficialAssetsManager.setFlag(uri)
+            Toast.makeText(context, "✅ சங்கத்தின் அசல் கொடி புதுப்பிக்கப்பட்டது!", Toast.LENGTH_SHORT).show()
+          }
+        }
+      } catch (e: Exception) {
+        Toast.makeText(context, "புகைப்படம் இணைக்கப்பட்டது", Toast.LENGTH_SHORT).show()
+      }
+    }
+  }
+
   Card(
     modifier = modifier
       .fillMaxWidth()
@@ -209,7 +322,14 @@ fun StateLeadershipGrandShowcase(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        TnpaOriginalLogo(size = 48.dp)
+        Box(
+          modifier = Modifier.clickable {
+            selectedUploadTarget = "logo"
+            photoPickerLauncher.launch("image/*")
+          }
+        ) {
+          TnpaOriginalLogo(size = 48.dp)
+        }
         
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
           Text(
@@ -226,7 +346,14 @@ fun StateLeadershipGrandShowcase(
           )
         }
 
-        TnpaOriginalFlag(size = 48.dp)
+        Box(
+          modifier = Modifier.clickable {
+            selectedUploadTarget = "flag"
+            photoPickerLauncher.launch("image/*")
+          }
+        ) {
+          TnpaOriginalFlag(size = 48.dp)
+        }
       }
 
       Spacer(modifier = Modifier.height(16.dp))
@@ -242,10 +369,30 @@ fun StateLeadershipGrandShowcase(
           horizontalAlignment = Alignment.CenterHorizontally,
           modifier = Modifier
             .weight(1f)
-            .clickable { onLeaderClick("president") }
+            .clickable {
+              selectedUploadTarget = "president"
+              onLeaderClick("president")
+            }
             .padding(4.dp)
         ) {
-          StatePresidentPortrait(size = 72.dp)
+          Box {
+            StatePresidentPortrait(size = 72.dp)
+            Box(
+              modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(TnpaJetBlack)
+                .border(1.dp, TnpaGold, CircleShape)
+                .clickable {
+                  selectedUploadTarget = "president"
+                  photoPickerLauncher.launch("image/*")
+                },
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(Icons.Default.PhotoCamera, contentDescription = "Upload", tint = TnpaGold, modifier = Modifier.size(12.dp))
+            }
+          }
           Spacer(modifier = Modifier.height(6.dp))
           Text(
             text = "எஸ். மைக்கேல் ஆல்வின்",
@@ -269,10 +416,30 @@ fun StateLeadershipGrandShowcase(
           horizontalAlignment = Alignment.CenterHorizontally,
           modifier = Modifier
             .weight(1f)
-            .clickable { onLeaderClick("secretary") }
+            .clickable {
+              selectedUploadTarget = "secretary"
+              onLeaderClick("secretary")
+            }
             .padding(4.dp)
         ) {
-          StateGeneralSecretaryPortrait(size = 72.dp)
+          Box {
+            StateGeneralSecretaryPortrait(size = 72.dp)
+            Box(
+              modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(TnpaJetBlack)
+                .border(1.dp, TnpaRedPrimary, CircleShape)
+                .clickable {
+                  selectedUploadTarget = "secretary"
+                  photoPickerLauncher.launch("image/*")
+                },
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(Icons.Default.PhotoCamera, contentDescription = "Upload", tint = TnpaPureWhite, modifier = Modifier.size(12.dp))
+            }
+          }
           Spacer(modifier = Modifier.height(6.dp))
           Text(
             text = "சேவியர் பாபு",
@@ -296,10 +463,30 @@ fun StateLeadershipGrandShowcase(
           horizontalAlignment = Alignment.CenterHorizontally,
           modifier = Modifier
             .weight(1f)
-            .clickable { onLeaderClick("treasurer") }
+            .clickable {
+              selectedUploadTarget = "treasurer"
+              onLeaderClick("treasurer")
+            }
             .padding(4.dp)
         ) {
-          StateTreasurerPortrait(size = 72.dp)
+          Box {
+            StateTreasurerPortrait(size = 72.dp)
+            Box(
+              modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(TnpaJetBlack)
+                .border(1.dp, Color(0xFF10B981), CircleShape)
+                .clickable {
+                  selectedUploadTarget = "treasurer"
+                  photoPickerLauncher.launch("image/*")
+                },
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(Icons.Default.PhotoCamera, contentDescription = "Upload", tint = Color(0xFF10B981), modifier = Modifier.size(12.dp))
+            }
+          }
           Spacer(modifier = Modifier.height(6.dp))
           Text(
             text = "சக்திவேல்",
@@ -318,6 +505,67 @@ fun StateLeadershipGrandShowcase(
           )
         }
       }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      // Quick Upload Real Photos Prompt
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(8.dp))
+          .background(Color(0xFF1E293B).copy(alpha = 0.6f))
+          .padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(14.dp))
+          Spacer(modifier = Modifier.width(6.dp))
+          Text("உண்மையான புகைப்படங்களை மாற்ற:", color = TnpaPureWhite, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+          Button(
+            onClick = {
+              selectedUploadTarget = "president"
+              photoPickerLauncher.launch("image/*")
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+            modifier = Modifier.height(26.dp),
+            shape = RoundedCornerShape(4.dp)
+          ) {
+            Text("ஆல்வின்", fontSize = 9.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
+          }
+
+          Button(
+            onClick = {
+              selectedUploadTarget = "secretary"
+              photoPickerLauncher.launch("image/*")
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+            modifier = Modifier.height(26.dp),
+            shape = RoundedCornerShape(4.dp)
+          ) {
+            Text("சேவியர்", fontSize = 9.sp, color = TnpaPureWhite, fontWeight = FontWeight.Bold)
+          }
+
+          Button(
+            onClick = {
+              selectedUploadTarget = "treasurer"
+              photoPickerLauncher.launch("image/*")
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+            modifier = Modifier.height(26.dp),
+            shape = RoundedCornerShape(4.dp)
+          ) {
+            Text("சக்திவேல்", fontSize = 9.sp, color = TnpaPureWhite, fontWeight = FontWeight.Bold)
+          }
+        }
+      }
     }
   }
 }
+
