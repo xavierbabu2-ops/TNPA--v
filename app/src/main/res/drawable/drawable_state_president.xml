@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="256dp"
+    android:height="256dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <!-- Background Golden-Amber Gradient Plate -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M0,0 H256 V256 H0 Z" />
+    <path
+        android:fillColor="#D97706"
+        android:pathData="M0,128 L256,256 H0 Z" />
+    <!-- Tamil Nadu State Silhouette Contour in BG -->
+    <path
+        android:fillColor="#DC2626"
+        android:fillAlpha="0.3"
+        android:pathData="M20,50 C50,25 90,35 115,75 C110,120 85,150 65,200 C35,170 15,100 20,50 Z" />
+
+    <!-- Shoulders & White Shirt -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,256 C46,188 85,175 128,175 C171,175 210,188 218,256 Z" />
+    <!-- Collar -->
+    <path
+        android:fillColor="#F1F5F9"
+        android:strokeColor="#CBD5E1"
+        android:strokeWidth="1.2"
+        android:pathData="M98,175 L128,210 L112,175 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#CBD5E1"
+        android:strokeWidth="1.2"
+        android:pathData="M94,175 L122,210 L84,188 Z" />
+    <path
+        android:fillColor="#F1F5F9"
+        android:strokeColor="#CBD5E1"
+        android:strokeWidth="1.2"
+        android:pathData="M158,175 L128,210 L144,175 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#CBD5E1"
+        android:strokeWidth="1.2"
+        android:pathData="M162,175 L134,210 L172,188 Z" />
+    <!-- Placket & Buttons -->
+    <path
+        android:strokeColor="#CBD5E1"
+        android:strokeWidth="2"
+        android:pathData="M128,210 V256" />
+    <path
+        android:fillColor="#475569"
+        android:pathData="M128,228 A2.5,2.5 0 1,1 127.9,228 Z" />
+    <path
+        android:fillColor="#475569"
+        android:pathData="M128,248 A2.5,2.5 0 1,1 127.9,248 Z" />
+
+    <!-- Neck -->
+    <path
+        android:fillColor="#B45309"
+        android:pathData="M109,150 H147 V188 H109 Z" />
+
+    <!-- Face & Ears -->
+    <path
+        android:fillColor="#B45309"
+        android:pathData="M88,118 A8,14 0 1,1 87.9,118 Z" />
+    <path
+        android:fillColor="#B45309"
+        android:pathData="M168,118 A8,14 0 1,1 167.9,118 Z" />
+    
+    <!-- Face Contour -->
+    <path
+        android:fillColor="#D97706"
+        android:pathData="M92,90 C92,55 164,55 164,90 C164,138 155,160 128,162 C101,160 92,138 92,90 Z" />
+
+    <!-- Neat Black Hair -->
+    <path
+        android:fillColor="#18181B"
+        android:pathData="M88,85 C86,40 115,30 128,30 C141,30 170,40 168,85 C162,60 145,50 128,52 C111,50 94,60 88,85 Z" />
+
+    <!-- Eyebrows -->
+    <path
+        android:strokeColor="#18181B"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M100,88 C111,84 120,88 120,88" />
+    <path
+        android:strokeColor="#18181B"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M136,88 C145,84 156,88 156,88" />
+
+    <!-- Eyes -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M103,96 A6,4 0 1,1 102.9,96 Z" />
+    <path
+        android:fillColor="#18181B"
+        android:pathData="M111,96 A3,3 0 1,1 110.9,96 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M147,96 A6,4 0 1,1 146.9,96 Z" />
+    <path
+        android:fillColor="#18181B"
+        android:pathData="M145,96 A3,3 0 1,1 144.9,96 Z" />
+
+    <!-- Nose -->
+    <path
+        android:strokeColor="#92400E"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M128,92 L126,115 C128,120 132,118 132,118" />
+
+    <!-- Neat Mustache -->
+    <path
+        android:fillColor="#18181B"
+        android:pathData="M107,130 C128,126 149,130 149,130 C140,139 128,136 128,136 C128,136 116,139 107,130 Z" />
+
+    <!-- Mouth -->
+    <path
+        android:strokeColor="#78350F"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M117,142 C128,147 139,142 139,142" />
+
+</vector>

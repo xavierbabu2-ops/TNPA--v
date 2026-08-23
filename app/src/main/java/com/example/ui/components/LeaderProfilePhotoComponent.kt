@@ -94,6 +94,22 @@ object LeaderPhotoAssets {
   const val DISTRICT_SECRETARY_DEFAULT = "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80"
   const val YOUTH_WING_DEFAULT = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80"
 
+  fun getLocalDrawableForLeader(name: String, designation: String = ""): Int? {
+    val search = "$name $designation".lowercase()
+    return when {
+      search.contains("ஆல்வின்") || search.contains("alvin") || (search.contains("தலைவர்") && !search.contains("மாவட்ட")) || (search.contains("president") && !search.contains("district")) -> {
+        com.example.R.drawable.drawable_state_president
+      }
+      search.contains("சேவியர்") || search.contains("xavier") || search.contains("பொதுச் செயலாளர்") || search.contains("general secretary") -> {
+        com.example.R.drawable.drawable_state_general_secretary
+      }
+      search.contains("சக்திவேல்") || search.contains("sakthivel") || search.contains("பொருளாளர்") || search.contains("treasurer") -> {
+        com.example.R.drawable.drawable_state_treasurer
+      }
+      else -> null
+    }
+  }
+
   fun getSuggestedPhotoForName(name: String, level: AdminHierarchyLevel? = null): String {
     return when {
       name.contains("ஆல்வின்", ignoreCase = true) || name.contains("Alvin", ignoreCase = true) -> MICHAEL_ALVIN_PHOTO
@@ -129,8 +145,14 @@ fun LeaderProfilePhotoView(
 ) {
   var showFullPhotoModal by remember { mutableStateOf(false) }
 
-  // Resolved Photo URL (uses provided url or smart fallback)
-  val effectivePhotoUrl = if (!photoUrl.isNullOrBlank()) {
+  // Resolved local drawable or photo URL
+  val localDrawableId = LeaderPhotoAssets.getLocalDrawableForLeader(fullName.ifBlank { tamilName }, designation)
+  val isCustomUploadedPhoto = !photoUrl.isNullOrBlank() && !photoUrl.startsWith("https://images.unsplash.com")
+  val effectivePhotoUrl = if (isCustomUploadedPhoto) {
+    photoUrl
+  } else if (localDrawableId != null) {
+    null // Handled directly via localDrawableId
+  } else if (!photoUrl.isNullOrBlank()) {
     photoUrl
   } else {
     LeaderPhotoAssets.getSuggestedPhotoForName(fullName.ifBlank { tamilName }, level)
@@ -167,7 +189,48 @@ fun LeaderProfilePhotoView(
       ),
     contentAlignment = Alignment.Center
   ) {
-    if (effectivePhotoUrl.isNotBlank()) {
+    if (isCustomUploadedPhoto && !photoUrl.isNullOrBlank()) {
+      SubcomposeAsyncImage(
+        model = photoUrl,
+        contentDescription = "Photo of $tamilName",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+          .fillMaxSize()
+          .clip(CircleShape),
+        loading = {
+          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+              modifier = Modifier.size(size * 0.4f),
+              color = TnpaGold,
+              strokeWidth = 2.dp
+            )
+          }
+        },
+        error = {
+          if (localDrawableId != null) {
+            Image(
+              painter = androidx.compose.ui.res.painterResource(id = localDrawableId),
+              contentDescription = "Photo of $tamilName",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+            )
+          } else {
+            LeaderFallbackAvatar(tamilName = tamilName, fullName = fullName, size = size, isTopLeader = isTopLeader)
+          }
+        }
+      )
+    } else if (localDrawableId != null) {
+      Image(
+        painter = androidx.compose.ui.res.painterResource(id = localDrawableId),
+        contentDescription = "Photo of $tamilName",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+          .fillMaxSize()
+          .clip(CircleShape)
+      )
+    } else if (!effectivePhotoUrl.isNullOrBlank()) {
       SubcomposeAsyncImage(
         model = effectivePhotoUrl,
         contentDescription = "Photo of $tamilName",
@@ -185,7 +248,6 @@ fun LeaderProfilePhotoView(
           }
         },
         error = {
-          // Elegant Fallback Avatar
           LeaderFallbackAvatar(tamilName = tamilName, fullName = fullName, size = size, isTopLeader = isTopLeader)
         }
       )
@@ -217,7 +279,7 @@ fun LeaderProfilePhotoView(
   // Full Screen Zoom & Official Badge Modal
   if (showFullPhotoModal) {
     LeaderPhotoBadgeModal(
-      photoUrl = effectivePhotoUrl,
+      photoUrl = photoUrl ?: "",
       fullName = fullName,
       tamilName = tamilName,
       designation = designation,
@@ -308,9 +370,9 @@ fun LeaderPhotoBadgeModal(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
               Text(
-                text = "தமிழ்நாடு பெயிண்டர்கள் சங்கம்",
+                text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
                 color = TnpaPureWhite,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Black
               )
               Text(
@@ -335,6 +397,8 @@ fun LeaderPhotoBadgeModal(
         HorizontalDivider(color = Color(0xFF334155))
 
         // Large Profile Photo with Gold Laurel Frame
+        val localModalResId = LeaderPhotoAssets.getLocalDrawableForLeader(fullName.ifBlank { tamilName }, designation)
+        val isCustomPhoto = photoUrl.isNotBlank() && !photoUrl.startsWith("https://images.unsplash.com")
         Box(
           modifier = Modifier
             .size(170.dp)
@@ -344,28 +408,81 @@ fun LeaderPhotoBadgeModal(
             .shadow(12.dp, CircleShape),
           contentAlignment = Alignment.Center
         ) {
-          SubcomposeAsyncImage(
-            model = photoUrl,
-            contentDescription = "Photo of $tamilName",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-              .fillMaxSize()
-              .clip(CircleShape),
-            loading = {
-              Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = TnpaGold)
+          if (isCustomPhoto) {
+            SubcomposeAsyncImage(
+              model = photoUrl,
+              contentDescription = "Photo of $tamilName",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape),
+              loading = {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                  CircularProgressIndicator(color = TnpaGold)
+                }
+              },
+              error = {
+                if (localModalResId != null) {
+                  Image(
+                    painter = androidx.compose.ui.res.painterResource(id = localModalResId),
+                    contentDescription = "Photo of $tamilName",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                      .fillMaxSize()
+                      .clip(CircleShape)
+                  )
+                } else {
+                  Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                  ) {
+                    Icon(Icons.Default.Person, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(60.dp))
+                    Text(tamilName.take(6), color = TnpaPureWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                  }
+                }
               }
-            },
-            error = {
-              Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-              ) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(60.dp))
-                Text(tamilName.take(6), color = TnpaPureWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            )
+          } else if (localModalResId != null) {
+            Image(
+              painter = androidx.compose.ui.res.painterResource(id = localModalResId),
+              contentDescription = "Photo of $tamilName",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+            )
+          } else if (photoUrl.isNotBlank()) {
+            SubcomposeAsyncImage(
+              model = photoUrl,
+              contentDescription = "Photo of $tamilName",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape),
+              loading = {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                  CircularProgressIndicator(color = TnpaGold)
+                }
+              },
+              error = {
+                Column(
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.Center
+                ) {
+                  Icon(Icons.Default.Person, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(60.dp))
+                  Text(tamilName.take(6), color = TnpaPureWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
               }
+            )
+          } else {
+            Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.Center
+            ) {
+              Icon(Icons.Default.Person, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(60.dp))
+              Text(tamilName.take(6), color = TnpaPureWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
-          )
+          }
         }
 
         // Leader Name & Designation

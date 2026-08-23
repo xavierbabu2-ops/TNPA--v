@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="256dp"
+    android:height="256dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <!-- 1. Metallic Pole Left -->
+    <path
+        android:fillColor="#94A3B8"
+        android:strokeColor="#475569"
+        android:strokeWidth="1"
+        android:pathData="M38,40 H48 V240 H38 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M41,40 H43 V240 H41 Z" />
+    <!-- Top Golden Finial -->
+    <path
+        android:fillColor="#F59E0B"
+        android:strokeColor="#B45309"
+        android:strokeWidth="1"
+        android:pathData="M43,26 A8,8 0 1,1 42.9,26 Z" />
+    <path
+        android:fillColor="#FEF08A"
+        android:pathData="M41,24 A3,3 0 1,1 40.9,24 Z" />
+
+    <!-- 2. Waving Flag: Top Red Half -->
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M48,60 C90,48 135,76 175,60 C198,52 215,64 225,72 L140,140 L48,150 Z" />
+
+    <!-- 3. Waving Flag: Bottom White Half -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:strokeColor="#E2E8F0"
+        android:strokeWidth="0.8"
+        android:pathData="M48,150 L140,140 L225,72 C230,112 210,152 222,160 C182,148 142,172 98,156 C78,148 60,158 48,154 Z" />
+
+    <!-- 4. Subtle Shading on Flag to simulate waving fabric cloth -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.08"
+        android:pathData="M98,54 C112,62 120,80 120,165 C108,160 98,156 98,156 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.15"
+        android:pathData="M140,65 C155,55 168,58 168,145 C155,148 140,140 140,140 Z" />
+
+    <!-- 5. Center Golden Medallion Ring & TNPA Emblem -->
+    <path
+        android:fillColor="#FFFBEB"
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="4"
+        android:pathData="M136,112 A36,36 0 1,1 135.9,112 Z" />
+    <path
+        android:strokeColor="#D97706"
+        android:strokeWidth="1.2"
+        android:pathData="M136,112 A32,32 0 1,1 135.9,112 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M136,112 A28,28 0 1,1 135.9,112 Z" />
+
+    <!-- Mini Fist & Brushes in Flag Center -->
+    <!-- Roller -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M152,90 H160 V106 H152 Z" />
+    <!-- Brush -->
+    <path
+        android:fillColor="#D97706"
+        android:pathData="M118,100 L124,96 L128,104 L122,108 Z" />
+    <!-- Fist -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M128,114 C124,104 130,98 138,98 C146,98 150,104 148,114 C146,122 140,126 136,126 C130,126 126,122 128,114 Z" />
+    <!-- Text "TNPA²" in Flag Center -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M124,130 H128 V132 H127 V137 H125 V132 H124 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M129,130 H131 L134,134 V130 H136 V137 H134 L131,133 V137 H129 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M138,130 H142 C143.5,130 144.5,131 144.5,132.5 C144.5,134 143.5,135 142,135 H140 V137 H138 Z M140,131.5 V133.5 H142 C142.8,133.5 143.2,133 143.2,132.5 C143.2,132 142.8,131.5 142,131.5 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M146,130 H148 L151,137 H149.5 L149,135.5 H146 L145.5,137 H144 Z M146.5,134 H148.5 L147.5,131.5 Z" />
+
+</vector>

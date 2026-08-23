@@ -1076,9 +1076,9 @@ fun DashboardMemberDigitalIdDialog(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
               Text(
-                text = "தமிழ்நாடு பெயிண்டர்கள் சங்கம்",
+                text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
                 color = TnpaPureWhite,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Black
               )
               Text(
@@ -1251,7 +1251,7 @@ fun DashboardMemberDigitalIdDialog(
 
           Button(
             onClick = {
-              val shareText = "🏷️ தமிழ்நாடு பெயிண்டர்கள் சங்கம் - உறுப்பினர் அட்டை\nபெயர்: ${member.tamilName}\nஉறுப்பினர் எண்: ${member.id}\nபதவி: ${member.designation}\nமாவட்டம்: ${member.district}\nமொபைல்: ${member.mobile}\nபதிவெண்: TNMDUJCLMDUTU-50-26-0044"
+              val shareText = "🏷️ தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²) - உறுப்பினர் அட்டை\nபெயர்: ${member.tamilName}\nஉறுப்பினர் எண்: ${member.id}\nபதவி: ${member.designation}\nமாவட்டம்: ${member.district}\nமொபைல்: ${member.mobile}\nபதிவெண்: TNMDUJCLMDUTU-50-26-0044"
               val sendIntent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_TEXT, shareText)

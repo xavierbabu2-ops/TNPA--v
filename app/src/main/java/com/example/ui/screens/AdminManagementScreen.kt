@@ -751,6 +751,186 @@ fun FirstTimePasswordSetupDialog(
 // AUTHORIZED ADMIN DASHBOARD (SUPER, STATE & DISTRICT)
 // ============================================================================
 
+@Composable
+fun AdminIdentityHeaderBadge(
+  admin: AdminAccount,
+  onLogout: () -> Unit,
+  onOpenAppDownloadModal: () -> Unit
+) {
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
+    colors = CardDefaults.cardColors(
+      containerColor = when (admin.role) {
+        AdminRole.SUPER_ADMIN -> TnpaRedPrimary
+        AdminRole.STATE_ADMIN -> Color(0xFF1E293B)
+        AdminRole.DISTRICT_ADMIN -> Color(0xFF0F766E)
+      }
+    ),
+    elevation = CardDefaults.cardElevation(4.dp)
+  ) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+          Icon(
+            imageVector = when (admin.role) {
+              AdminRole.SUPER_ADMIN -> Icons.Default.VerifiedUser
+              AdminRole.STATE_ADMIN -> Icons.Default.Shield
+              AdminRole.DISTRICT_ADMIN -> Icons.Default.LocationOn
+            },
+            contentDescription = null,
+            tint = TnpaGold,
+            modifier = Modifier.size(24.dp)
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Column {
+            Text(
+              text = admin.fullName,
+              color = Color.White,
+              fontWeight = FontWeight.Bold,
+              fontSize = 15.sp
+            )
+            Text(
+              text = "${admin.designation} ${if (admin.assignedDistrict != null) "• ${admin.assignedDistrict}" else ""}",
+              color = TnpaGold,
+              fontSize = 12.sp,
+              fontWeight = FontWeight.Medium
+            )
+          }
+        }
+
+        // Top Header Action Buttons
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+          Button(
+            onClick = onOpenAppDownloadModal,
+            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.height(34.dp).testTag("btn_admin_top_apk_download")
+          ) {
+            Icon(Icons.Default.Download, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("APK", fontSize = 11.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
+          }
+
+          OutlinedButton(
+            onClick = onLogout,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.horizontalGradient(listOf(Color.White, Color.LightGray))),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.height(34.dp)
+          ) {
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("வெளியேறு", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+          }
+        }
+      }
+
+      // Role Scope Pill
+      Spacer(modifier = Modifier.height(8.dp))
+      Card(
+        shape = RoundedCornerShape(6.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.25f))
+      ) {
+        Row(
+          modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Icon(Icons.Default.Security, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+            text = when (admin.role) {
+              AdminRole.SUPER_ADMIN -> "முழுமையான கட்டுப்பாட்டு அதிகாரம் (Full Super Admin Master Authority)"
+              AdminRole.STATE_ADMIN -> "மாநில அளவிலான கண்காணிப்பு & ஒப்புதல் அதிகாரம் (State-Wide 38 Districts Scope)"
+              AdminRole.DISTRICT_ADMIN -> "மாவட்டத் தரவு தனிமைப்படுத்தல்: ${admin.assignedDistrict} மட்டும்"
+            },
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Normal
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+fun AdminSubScreenTabsRow(
+  admin: AdminAccount,
+  selectedTab: Int,
+  onTabSelected: (Int) -> Unit
+) {
+  ScrollableTabRow(
+    selectedTabIndex = selectedTab,
+    containerColor = Color.White,
+    contentColor = TnpaRedPrimary,
+    edgePadding = 12.dp,
+    modifier = Modifier.fillMaxWidth()
+  ) {
+    Tab(
+      selected = selectedTab == 0,
+      onClick = { onTabSelected(0) },
+      text = { Text("📊 டேஷ்போர்டு", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
+      icon = { Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(16.dp)) },
+      modifier = Modifier.testTag("admin_tab_dashboard")
+    )
+    Tab(
+      selected = selectedTab == 1,
+      onClick = { onTabSelected(1) },
+      text = { Text("உறுப்பினர் ஒப்புதல்", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
+      icon = { Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp)) },
+      modifier = Modifier.testTag("admin_tab_members")
+    )
+    Tab(
+      selected = selectedTab == 2,
+      onClick = { onTabSelected(2) },
+      text = { Text("நலத்திட்ட ஒப்புதல்", fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) },
+      icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
+      modifier = Modifier.testTag("admin_tab_welfare")
+    )
+    Tab(
+      selected = selectedTab == 3,
+      onClick = { onTabSelected(3) },
+      text = { Text("வேலைவாய்ப்பு ஒப்புதல்", fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Normal) },
+      icon = { Icon(Icons.Default.Work, contentDescription = null, modifier = Modifier.size(16.dp)) },
+      modifier = Modifier.testTag("admin_tab_jobs")
+    )
+    if (admin.role == AdminRole.SUPER_ADMIN) {
+      Tab(
+        selected = selectedTab == 4,
+        onClick = { onTabSelected(4) },
+        text = { Text("நிர்வாகிகள் கட்டமைப்பு", fontWeight = if (selectedTab == 4) FontWeight.Bold else FontWeight.Normal) },
+        icon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp)) },
+        modifier = Modifier.testTag("admin_tab_hierarchy")
+      )
+    }
+    Tab(
+      selected = selectedTab == 5,
+      onClick = { onTabSelected(5) },
+      text = { Text("Audit Logs", fontWeight = if (selectedTab == 5) FontWeight.Bold else FontWeight.Normal) },
+      icon = { Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp)) },
+      modifier = Modifier.testTag("admin_tab_audit")
+    )
+    if (admin.role == AdminRole.SUPER_ADMIN || admin.role == AdminRole.STATE_ADMIN) {
+      Tab(
+        selected = selectedTab == 6,
+        onClick = { onTabSelected(6) },
+        text = { Text("TV நேரலை கட்டுப்பாடு", fontWeight = if (selectedTab == 6) FontWeight.Bold else FontWeight.Normal) },
+        icon = { Icon(Icons.Default.LiveTv, contentDescription = null, modifier = Modifier.size(16.dp)) },
+        modifier = Modifier.testTag("admin_tab_tv")
+      )
+    }
+  }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAuthorizedDashboardView(
@@ -783,242 +963,114 @@ fun AdminAuthorizedDashboardView(
   var generatedSetupKeyNotification by remember { mutableStateOf<Pair<String, String>?>(null) }
   var showAppDownloadModal by remember { mutableStateOf(false) }
 
-  Column(
+  val headerContent: @Composable () -> Unit = {
+    AdminIdentityHeaderBadge(
+      admin = admin,
+      onLogout = onLogout,
+      onOpenAppDownloadModal = { showAppDownloadModal = true }
+    )
+  }
+
+  val tabsContent: @Composable () -> Unit = {
+    AdminSubScreenTabsRow(
+      admin = admin,
+      selectedTab = selectedTab,
+      onTabSelected = { selectedTab = it }
+    )
+  }
+
+  Box(
     modifier = Modifier
       .fillMaxSize()
       .background(TnpaOffWhite)
   ) {
-    // Top Bar with Admin Identity Badge & Logout
-    Card(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
-      colors = CardDefaults.cardColors(
-        containerColor = when (admin.role) {
-          AdminRole.SUPER_ADMIN -> TnpaRedPrimary
-          AdminRole.STATE_ADMIN -> Color(0xFF1E293B)
-          AdminRole.DISTRICT_ADMIN -> Color(0xFF0F766E)
-        }
-      ),
-      elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 12.dp)
-      ) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-              imageVector = when (admin.role) {
-                AdminRole.SUPER_ADMIN -> Icons.Default.VerifiedUser
-                AdminRole.STATE_ADMIN -> Icons.Default.Shield
-                AdminRole.DISTRICT_ADMIN -> Icons.Default.LocationOn
-              },
-              contentDescription = null,
-              tint = TnpaGold,
-              modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-              Text(
-                text = admin.fullName,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
-              )
-              Text(
-                text = "${admin.designation} ${if (admin.assignedDistrict != null) "• ${admin.assignedDistrict}" else ""}",
-                color = TnpaGold,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-              )
+    when (selectedTab) {
+      0 -> AdminExecutiveDashboardSubScreen(
+        admin = admin,
+        topHeaderContent = headerContent,
+        tabsContent = tabsContent,
+        onNavigateToTab = { selectedTab = it },
+        onNavigateToAiMonitoring = onNavigateToAiMonitoring,
+        streamStatus = streamStatus,
+        onOpenAppDownloadModal = { showAppDownloadModal = true },
+        onActionTaken = onAdminUpdated
+      )
+      1 -> MemberApprovalsSubScreen(
+        admin = admin,
+        topHeaderContent = headerContent,
+        tabsContent = tabsContent,
+        onActionTaken = onAdminUpdated
+      )
+      2 -> WelfareApprovalsSubScreen(
+        admin = admin,
+        topHeaderContent = headerContent,
+        tabsContent = tabsContent,
+        onActionTaken = onAdminUpdated
+      )
+      3 -> JobApprovalsSubScreen(
+        admin = admin,
+        topHeaderContent = headerContent,
+        tabsContent = tabsContent,
+        onActionTaken = onAdminUpdated
+      )
+      4 -> {
+        if (admin.role == AdminRole.SUPER_ADMIN) {
+          AdminHierarchyManagementSubScreen(
+            admin = admin,
+            topHeaderContent = headerContent,
+            tabsContent = tabsContent,
+            onCreateAdminClick = { showCreateAdminModal = true },
+            onResetAccessClick = { showResetAccessModal = it },
+            onChangeDistrictClick = { showChangeDistrictModal = it },
+            onStatusChange = { targetId, status ->
+              AdminApprovalRepository.updateAdminStatus(admin, targetId, status)
+              onAdminUpdated()
             }
-          }
-
-          // Top Header Action Buttons
-          Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            // APK Download & Distribution Shortcut Button
-            Button(
-              onClick = { showAppDownloadModal = true },
-              colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
-              shape = RoundedCornerShape(8.dp),
-              modifier = Modifier.height(34.dp).testTag("btn_admin_top_apk_download")
-            ) {
-              Icon(Icons.Default.Download, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
-              Spacer(modifier = Modifier.width(4.dp))
-              Text("APK", fontSize = 11.sp, fontWeight = FontWeight.Black, color = TnpaJetBlack)
-            }
-
-            // Logout Button
-            OutlinedButton(
-              onClick = onLogout,
-              colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-              border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.horizontalGradient(listOf(Color.White, Color.LightGray))),
-              shape = RoundedCornerShape(8.dp),
-              modifier = Modifier.height(34.dp)
-            ) {
-              Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(16.dp))
-              Spacer(modifier = Modifier.width(4.dp))
-              Text("வெளியேறு", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
-          }
-        }
-
-        // Role Scope Pill
-        Spacer(modifier = Modifier.height(8.dp))
-        Card(
-          shape = RoundedCornerShape(6.dp),
-          colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.25f))
-        ) {
-          Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Icon(Icons.Default.Security, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-              text = when (admin.role) {
-                AdminRole.SUPER_ADMIN -> "முழுமையான கட்டுப்பாட்டு அதிகாரம் (Full Super Admin Master Authority)"
-                AdminRole.STATE_ADMIN -> "மாநில அளவிலான கண்காணிப்பு & ஒப்புதல் அதிகாரம் (State-Wide 38 Districts Scope)"
-                AdminRole.DISTRICT_ADMIN -> "மாவட்டத் தரவு தனிமைப்படுத்தல்: ${admin.assignedDistrict} மட்டும்"
-              },
-              color = Color.White,
-              fontSize = 11.sp,
-              fontWeight = FontWeight.Normal
-            )
-          }
-        }
-      }
-    }
-
-    // Role-Adaptive Tabs
-    ScrollableTabRow(
-      selectedTabIndex = selectedTab,
-      containerColor = Color.White,
-      contentColor = TnpaRedPrimary,
-      edgePadding = 12.dp,
-      modifier = Modifier.fillMaxWidth()
-    ) {
-      Tab(
-        selected = selectedTab == 0,
-        onClick = { selectedTab = 0 },
-        text = { Text("📊 டேஷ்போர்டு", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_dashboard")
-      )
-      Tab(
-        selected = selectedTab == 1,
-        onClick = { selectedTab = 1 },
-        text = { Text("உறுப்பினர் ஒப்புதல்", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_members")
-      )
-      Tab(
-        selected = selectedTab == 2,
-        onClick = { selectedTab = 2 },
-        text = { Text("நலத்திட்ட ஒப்புதல்", fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_welfare")
-      )
-      Tab(
-        selected = selectedTab == 3,
-        onClick = { selectedTab = 3 },
-        text = { Text("வேலைவாய்ப்பு ஒப்புதல்", fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.Work, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_jobs")
-      )
-      if (admin.role == AdminRole.SUPER_ADMIN) {
-        Tab(
-          selected = selectedTab == 4,
-          onClick = { selectedTab = 4 },
-          text = { Text("நிர்வாகிகள் கட்டமைப்பு", fontWeight = if (selectedTab == 4) FontWeight.Bold else FontWeight.Normal) },
-          icon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp)) },
-          modifier = Modifier.testTag("admin_tab_hierarchy")
-        )
-      }
-      Tab(
-        selected = selectedTab == 5,
-        onClick = { selectedTab = 5 },
-        text = { Text("Audit Logs", fontWeight = if (selectedTab == 5) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_audit")
-      )
-      if (admin.role == AdminRole.SUPER_ADMIN || admin.role == AdminRole.STATE_ADMIN) {
-        Tab(
-          selected = selectedTab == 6,
-          onClick = { selectedTab = 6 },
-          text = { Text("TV நேரலை கட்டுப்பாடு", fontWeight = if (selectedTab == 6) FontWeight.Bold else FontWeight.Normal) },
-          icon = { Icon(Icons.Default.LiveTv, contentDescription = null, modifier = Modifier.size(16.dp)) },
-          modifier = Modifier.testTag("admin_tab_tv")
-        )
-      }
-    }
-
-    // Main Content Panel
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(12.dp)
-    ) {
-      when (selectedTab) {
-        0 -> AdminExecutiveDashboardSubScreen(
-          admin = admin,
-          onNavigateToTab = { selectedTab = it },
-          onNavigateToAiMonitoring = onNavigateToAiMonitoring,
-          streamStatus = streamStatus,
-          onOpenAppDownloadModal = { showAppDownloadModal = true },
-          onActionTaken = onAdminUpdated
-        )
-        1 -> MemberApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
-        2 -> WelfareApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
-        3 -> JobApprovalsSubScreen(admin = admin, onActionTaken = onAdminUpdated)
-        4 -> {
-          if (admin.role == AdminRole.SUPER_ADMIN) {
-            AdminHierarchyManagementSubScreen(
-              admin = admin,
-              onCreateAdminClick = { showCreateAdminModal = true },
-              onResetAccessClick = { showResetAccessModal = it },
-              onChangeDistrictClick = { showChangeDistrictModal = it },
-              onStatusChange = { targetId, status ->
-                AdminApprovalRepository.updateAdminStatus(admin, targetId, status)
-                onAdminUpdated()
-              }
-            )
-          } else {
-            Text("அனுமதியில்லை (Unauthorized).")
-          }
-        }
-        5 -> AuditLogsSubScreen(admin = admin)
-        6 -> {
-          // Live TV Broadcast Control Screen
-          AdminBroadcastControlScreen(
-            rtmpUrl = rtmpUrl,
-            streamKey = streamKey,
-            hlsUrl = hlsUrl,
-            isBroadcasting = isBroadcasting,
-            streamStatus = streamStatus,
-            breakingNews = breakingNews,
-            healthReport = healthReport ?: StreamHealthReport(
-              status = streamStatus,
-              statusCode = 200,
-              statusMessage = "Stream Normal",
-              latencyMs = 30,
-              isServerReachable = true,
-              isHlsValid = true,
-              activeBitrate = "4500 kbps",
-              fps = 60,
-              resolution = "1080p",
-              timestamp = "Live"
-            ),
-            onUpdateSettings = onUpdateSettings,
-            onToggleBroadcast = onToggleBroadcast,
-            onHealthStatusUpdated = onHealthStatusUpdated
           )
+        } else {
+          Column(
+            modifier = Modifier
+              .fillMaxSize()
+              .verticalScroll(rememberScrollState())
+          ) {
+            headerContent()
+            tabsContent()
+            Text("அனுமதியில்லை (Unauthorized).", modifier = Modifier.padding(16.dp))
+          }
         }
+      }
+      5 -> AuditLogsSubScreen(
+        admin = admin,
+        topHeaderContent = headerContent,
+        tabsContent = tabsContent
+      )
+      6 -> {
+        // Live TV Broadcast Control Screen
+        AdminBroadcastControlScreen(
+          topHeaderContent = headerContent,
+          tabsContent = tabsContent,
+          rtmpUrl = rtmpUrl,
+          streamKey = streamKey,
+          hlsUrl = hlsUrl,
+          isBroadcasting = isBroadcasting,
+          streamStatus = streamStatus,
+          breakingNews = breakingNews,
+          healthReport = healthReport ?: StreamHealthReport(
+            status = streamStatus,
+            statusCode = 200,
+            statusMessage = "Stream Normal",
+            latencyMs = 30,
+            isServerReachable = true,
+            isHlsValid = true,
+            activeBitrate = "4500 kbps",
+            fps = 60,
+            resolution = "1080p",
+            timestamp = "Live"
+          ),
+          onUpdateSettings = onUpdateSettings,
+          onToggleBroadcast = onToggleBroadcast,
+          onHealthStatusUpdated = onHealthStatusUpdated
+        )
       }
     }
   }
@@ -1207,6 +1259,8 @@ fun AdminAuthorizedDashboardView(
 @Composable
 fun MemberApprovalsSubScreen(
   admin: AdminAccount,
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {},
   onActionTaken: () -> Unit
 ) {
   val context = LocalContext.current
@@ -1222,76 +1276,86 @@ fun MemberApprovalsSubScreen(
     filterStatus == null || it.status == filterStatus
   }
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    // Header & Filter Chips
-    Card(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 8.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
-      shape = RoundedCornerShape(10.dp)
-    ) {
-      Column(modifier = Modifier.padding(10.dp)) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Text(
-            text = "உறுப்பினர் விண்ணப்பங்கள் (${filteredApps.size})",
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            color = TnpaJetBlack
-          )
-          Text(
-            text = "விதி: 1 Authorized Approval = Final",
-            fontSize = 11.sp,
-            color = TnpaGreen,
-            fontWeight = FontWeight.Bold
-          )
-        }
+  LazyColumn(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(10.dp)
+  ) {
+    item {
+      topHeaderContent()
+    }
+    item {
+      tabsContent()
+    }
+    item {
+      // Header & Filter Chips
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(10.dp)
+      ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+              text = "உறுப்பினர் விண்ணப்பங்கள் (${filteredApps.size})",
+              fontWeight = FontWeight.Bold,
+              fontSize = 14.sp,
+              color = TnpaJetBlack
+            )
+            Text(
+              text = "விதி: 1 Authorized Approval = Final",
+              fontSize = 11.sp,
+              color = TnpaGreen,
+              fontWeight = FontWeight.Bold
+            )
+          }
 
-        Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(8.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          FilterChip(
-            selected = filterStatus == null,
-            onClick = { filterStatus = null },
-            label = { Text("அனைத்தும்", fontSize = 11.sp) }
-          )
-          FilterChip(
-            selected = filterStatus == ApprovalStatus.PENDING,
-            onClick = { filterStatus = ApprovalStatus.PENDING },
-            label = { Text("நிலுவை (Pending)", fontSize = 11.sp) }
-          )
-          FilterChip(
-            selected = filterStatus == ApprovalStatus.APPROVED,
-            onClick = { filterStatus = ApprovalStatus.APPROVED },
-            label = { Text("ஒப்புதல் அளிக்கப்பட்டது", fontSize = 11.sp) }
-          )
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+              selected = filterStatus == null,
+              onClick = { filterStatus = null },
+              label = { Text("அனைத்தும்", fontSize = 11.sp) }
+            )
+            FilterChip(
+              selected = filterStatus == ApprovalStatus.PENDING,
+              onClick = { filterStatus = ApprovalStatus.PENDING },
+              label = { Text("நிலுவை (Pending)", fontSize = 11.sp) }
+            )
+            FilterChip(
+              selected = filterStatus == ApprovalStatus.APPROVED,
+              onClick = { filterStatus = ApprovalStatus.APPROVED },
+              label = { Text("ஒப்புதல் அளிக்கப்பட்டது", fontSize = 11.sp) }
+            )
+          }
         }
       }
     }
 
     if (filteredApps.isEmpty()) {
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(32.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          Icon(Icons.Default.Badge, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(48.dp))
-          Spacer(modifier = Modifier.height(8.dp))
-          Text("விண்ணப்பங்கள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+      item {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+          contentAlignment = Alignment.Center
+        ) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.Badge, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(48.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("விண்ணப்பங்கள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+          }
         }
       }
     } else {
-      LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.fillMaxSize()
-      ) {
-        items(filteredApps, key = { it.applicationId }) { app ->
+      items(filteredApps, key = { it.applicationId }) { app ->
+        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
           MemberApprovalItemCard(
             item = app,
             admin = admin,
@@ -1310,6 +1374,10 @@ fun MemberApprovalsSubScreen(
           )
         }
       }
+    }
+
+    item {
+      Spacer(modifier = Modifier.height(24.dp))
     }
   }
 
@@ -1489,6 +1557,8 @@ fun MemberApprovalItemCard(
 @Composable
 fun WelfareApprovalsSubScreen(
   admin: AdminAccount,
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {},
   onActionTaken: () -> Unit
 ) {
   val context = LocalContext.current
@@ -1502,54 +1572,64 @@ fun WelfareApprovalsSubScreen(
     filterSchemeType == null || it.govtTypeLabel == filterSchemeType
   }
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    // Header & Disclaimer Card
-    Card(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 8.dp),
-      colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
-      shape = RoundedCornerShape(10.dp)
-    ) {
-      Column(modifier = Modifier.padding(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(Icons.Default.VolunteerActivism, contentDescription = null, tint = Color(0xFF2563EB), modifier = Modifier.size(20.dp))
-          Spacer(modifier = Modifier.width(8.dp))
+  LazyColumn(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(10.dp)
+  ) {
+    item {
+      topHeaderContent()
+    }
+    item {
+      tabsContent()
+    }
+    item {
+      // Header & Disclaimer Card
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
+        shape = RoundedCornerShape(10.dp)
+      ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.VolunteerActivism, contentDescription = null, tint = Color(0xFF2563EB), modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              text = "அரசு நலவாரிய விண்ணப்பங்கள் சரிபார்ப்பு (${filteredWelfare.size})",
+              fontWeight = FontWeight.Bold,
+              fontSize = 13.sp,
+              color = Color(0xFF1E3A8A)
+            )
+          }
           Text(
-            text = "அரசு நலவாரிய விண்ணப்பங்கள் சரிபார்ப்பு (${filteredWelfare.size})",
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
-            color = Color(0xFF1E3A8A)
+            text = "அறிவிப்பு: நமது அமைப்பின் உள் சரிபார்ப்பு/பரிந்துரைக்குப் பின் விண்ணப்பம் அதிகாரப்பூர்வ அரசு போர்ட்டலில் பூர்த்தி செய்யப்படும்.",
+            fontSize = 11.sp,
+            color = Color(0xFF1D4ED8),
+            modifier = Modifier.padding(top = 4.dp)
           )
         }
-        Text(
-          text = "அறிவிப்பு: நமது அமைப்பின் உள் சரிபார்ப்பு/பரிந்துரைக்குப் பின் விண்ணப்பம் அதிகாரப்பூர்வ அரசு போர்ட்டலில் பூர்த்தி செய்யப்படும்.",
-          fontSize = 11.sp,
-          color = Color(0xFF1D4ED8),
-          modifier = Modifier.padding(top = 4.dp)
-        )
       }
     }
 
     if (filteredWelfare.isEmpty()) {
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(32.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          Icon(Icons.Default.AssignmentTurnedIn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(48.dp))
-          Spacer(modifier = Modifier.height(8.dp))
-          Text("நலத்திட்ட விண்ணப்பங்கள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+      item {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+          contentAlignment = Alignment.Center
+        ) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.AssignmentTurnedIn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(48.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("நலத்திட்ட விண்ணப்பங்கள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+          }
         }
       }
     } else {
-      LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.fillMaxSize()
-      ) {
-        items(filteredWelfare, key = { it.welfareAppId }) { item ->
+      items(filteredWelfare, key = { it.welfareAppId }) { item ->
+        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
           Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -1666,6 +1746,10 @@ fun WelfareApprovalsSubScreen(
         }
       }
     }
+
+    item {
+      Spacer(modifier = Modifier.height(24.dp))
+    }
   }
 }
 
@@ -1676,6 +1760,8 @@ fun WelfareApprovalsSubScreen(
 @Composable
 fun AdminHierarchyManagementSubScreen(
   admin: AdminAccount,
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {},
   onCreateAdminClick: () -> Unit,
   onResetAccessClick: (AdminAccount) -> Unit,
   onChangeDistrictClick: (AdminAccount) -> Unit,
@@ -1695,150 +1781,171 @@ fun AdminHierarchyManagementSubScreen(
     filterRole == null || it.role == filterRole
   }
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    // Capacity Overview Card
-    Card(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 10.dp),
-      colors = CardDefaults.cardColors(containerColor = TnpaRedDark),
-      shape = RoundedCornerShape(12.dp)
-    ) {
-      Column(modifier = Modifier.padding(14.dp)) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Text(
-            text = "அதிகார படிநிலை & வரம்பு (Hierarchy & Limits)",
-            color = TnpaGold,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold
-          )
-
-          Button(
-            onClick = onCreateAdminClick,
-            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.height(34.dp)
+  LazyColumn(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(10.dp)
+  ) {
+    item {
+      topHeaderContent()
+    }
+    item {
+      tabsContent()
+    }
+    item {
+      // Capacity Overview Card
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = TnpaRedDark),
+        shape = RoundedCornerShape(12.dp)
+      ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
           ) {
-            Icon(Icons.Default.PersonAdd, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("புதிய நிர்வாகி", fontSize = 11.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
-          }
-        }
+            Text(
+              text = "அதிகார படிநிலை & வரம்பு (Hierarchy & Limits)",
+              color = TnpaGold,
+              fontSize = 13.sp,
+              fontWeight = FontWeight.Bold
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Super Admin Passkey Action Buttons Row
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          Button(
-            onClick = { showPasskeyDirectoryDialog = true },
-            modifier = Modifier.weight(1f).height(34.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
-          ) {
-            Icon(Icons.Default.Key, contentDescription = null, tint = TnpaRedDark, modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("பாஸ்கி பட்டியல்", fontSize = 11.sp, color = TnpaRedDark, fontWeight = FontWeight.Bold)
-          }
-
-          Button(
-            onClick = { showRegenerateAllConfirmDialog = true },
-            modifier = Modifier.weight(1.3f).height(34.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
-          ) {
-            Icon(Icons.Default.Refresh, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("அனைவருக்கும் பாஸ்கி உருவாக்கு", fontSize = 10.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
-          }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          Card(
-            modifier = Modifier.weight(1f),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
-            shape = RoundedCornerShape(8.dp)
-          ) {
-            Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-              Text("Super Admins", color = TnpaOffWhite, fontSize = 10.sp)
-              Text("$superCount / 2", color = Color.White, fontWeight = FontWeight.Black, fontSize = 16.sp)
+            Button(
+              onClick = onCreateAdminClick,
+              colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+              shape = RoundedCornerShape(8.dp),
+              modifier = Modifier.height(34.dp)
+            ) {
+              Icon(Icons.Default.PersonAdd, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(4.dp))
+              Text("புதிய நிர்வாகி", fontSize = 11.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
             }
           }
 
-          Card(
-            modifier = Modifier.weight(1f),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
-            shape = RoundedCornerShape(8.dp)
+          Spacer(modifier = Modifier.height(8.dp))
+
+          // Super Admin Passkey Action Buttons Row
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
           ) {
-            Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-              Text("State Admins", color = TnpaOffWhite, fontSize = 10.sp)
-              Text("$stateCount / 7 Max", color = TnpaGold, fontWeight = FontWeight.Black, fontSize = 16.sp)
+            Button(
+              onClick = { showPasskeyDirectoryDialog = true },
+              modifier = Modifier.weight(1f).height(34.dp),
+              colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+              shape = RoundedCornerShape(8.dp),
+              contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
+            ) {
+              Icon(Icons.Default.Key, contentDescription = null, tint = TnpaRedDark, modifier = Modifier.size(14.dp))
+              Spacer(modifier = Modifier.width(4.dp))
+              Text("பாஸ்கி பட்டியல்", fontSize = 11.sp, color = TnpaRedDark, fontWeight = FontWeight.Bold)
+            }
+
+            Button(
+              onClick = { showRegenerateAllConfirmDialog = true },
+              modifier = Modifier.weight(1.3f).height(34.dp),
+              colors = ButtonDefaults.buttonColors(containerColor = TnpaGold),
+              shape = RoundedCornerShape(8.dp),
+              contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)
+            ) {
+              Icon(Icons.Default.Refresh, contentDescription = null, tint = TnpaJetBlack, modifier = Modifier.size(14.dp))
+              Spacer(modifier = Modifier.width(4.dp))
+              Text("அனைவருக்கும் பாஸ்கி உருவாக்கு", fontSize = 10.sp, color = TnpaJetBlack, fontWeight = FontWeight.Bold)
             }
           }
 
-          Card(
-            modifier = Modifier.weight(1.2f),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
-            shape = RoundedCornerShape(8.dp)
+          Spacer(modifier = Modifier.height(10.dp))
+
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
           ) {
-            Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-              Text("District Admins", color = TnpaOffWhite, fontSize = 10.sp)
-              Text("$districtCount / 114 Max", color = Color(0xFF86EFAC), fontWeight = FontWeight.Black, fontSize = 16.sp)
+            Card(
+              modifier = Modifier.weight(1f),
+              colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+              shape = RoundedCornerShape(8.dp)
+            ) {
+              Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Super Admins", color = TnpaOffWhite, fontSize = 10.sp)
+                Text("$superCount / 2", color = Color.White, fontWeight = FontWeight.Black, fontSize = 16.sp)
+              }
+            }
+
+            Card(
+              modifier = Modifier.weight(1f),
+              colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+              shape = RoundedCornerShape(8.dp)
+            ) {
+              Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("State Admins", color = TnpaOffWhite, fontSize = 10.sp)
+                Text("$stateCount / 7 Max", color = TnpaGold, fontWeight = FontWeight.Black, fontSize = 16.sp)
+              }
+            }
+
+            Card(
+              modifier = Modifier.weight(1.2f),
+              colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+              shape = RoundedCornerShape(8.dp)
+            ) {
+              Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("District Admins", color = TnpaOffWhite, fontSize = 10.sp)
+                Text("$districtCount / 114 Max", color = Color(0xFF86EFAC), fontWeight = FontWeight.Black, fontSize = 16.sp)
+              }
             }
           }
         }
       }
     }
 
-    // Role Filter Chips
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 8.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      FilterChip(
-        selected = filterRole == null,
-        onClick = { filterRole = null },
-        label = { Text("அனைத்து நிர்வாகிகள் (${allAdmins.size})", fontSize = 11.sp) }
-      )
-      FilterChip(
-        selected = filterRole == AdminRole.STATE_ADMIN,
-        onClick = { filterRole = AdminRole.STATE_ADMIN },
-        label = { Text("State Admins ($stateCount/7)", fontSize = 11.sp) }
-      )
-      FilterChip(
-        selected = filterRole == AdminRole.DISTRICT_ADMIN,
-        onClick = { filterRole = AdminRole.DISTRICT_ADMIN },
-        label = { Text("District Admins ($districtCount/114)", fontSize = 11.sp) }
-      )
+    item {
+      // Role Filter Chips
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        FilterChip(
+          selected = filterRole == null,
+          onClick = { filterRole = null },
+          label = { Text("அனைத்து நிர்வாகிகள் (${allAdmins.size})", fontSize = 11.sp) }
+        )
+        FilterChip(
+          selected = filterRole == AdminRole.STATE_ADMIN,
+          onClick = { filterRole = AdminRole.STATE_ADMIN },
+          label = { Text("State Admins ($stateCount/7)", fontSize = 11.sp) }
+        )
+        FilterChip(
+          selected = filterRole == AdminRole.DISTRICT_ADMIN,
+          onClick = { filterRole = AdminRole.DISTRICT_ADMIN },
+          label = { Text("District Admins ($districtCount/114)", fontSize = 11.sp) }
+        )
+      }
     }
 
-    // Admin List
-    LazyColumn(
-      verticalArrangement = Arrangement.spacedBy(10.dp),
-      modifier = Modifier.fillMaxSize()
-    ) {
-      items(filteredAdmins, key = { it.id }) { item ->
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(12.dp),
-          colors = CardDefaults.cardColors(containerColor = Color.White),
-          elevation = CardDefaults.cardElevation(2.dp)
+    if (filteredAdmins.isEmpty()) {
+      item {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+          contentAlignment = Alignment.Center
         ) {
+          Text("நிர்வாகிகள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+        }
+      }
+    } else {
+      items(filteredAdmins, key = { it.id }) { item ->
+        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
+          ) {
           Column(modifier = Modifier.padding(14.dp)) {
             Row(
               modifier = Modifier.fillMaxWidth(),
@@ -1968,63 +2075,68 @@ fun AdminHierarchyManagementSubScreen(
         }
       }
     }
+  }
 
-    if (showPasskeyDirectoryDialog) {
-      AdminPasskeyDirectoryModalDialog(
-        callingAdmin = admin,
-        onDismiss = { showPasskeyDirectoryDialog = false },
-        onRegenerateAllKeys = {
-          val res = AdminApprovalRepository.generatePasskeysForAllAdmins(admin)
-          if (res.isSuccess) {
-            Toast.makeText(context, "அனைத்து நிர்வாகிகள் (${res.getOrNull()} நபர்கள்) கணக்குகளுக்கும் புதிய தனித்தனி Passkey உருவாக்கப்பட்டது!", Toast.LENGTH_LONG).show()
-          } else {
-            Toast.makeText(context, "பிழை: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
-          }
-        }
-      )
-    }
+  item {
+    Spacer(modifier = Modifier.height(24.dp))
+  }
+}
 
-    if (showRegenerateAllConfirmDialog) {
-      AlertDialog(
-        onDismissRequest = { showRegenerateAllConfirmDialog = false },
-        title = {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Key, contentDescription = null, tint = TnpaGold)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("அனைவருக்கும் தனித்தனி பாஸ்கி உருவாக்கவா?", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TnpaRedDark)
-          }
-        },
-        text = {
-          Text(
-            text = "அனைத்து மாநில மற்றும் மாவட்ட நிர்வாகிகள் கணக்குகளுக்கும் புதிய தனித்தனி One-Time Passkey உருவாக்கப்படும். அவர்கள் புதிய பாஸ்கியைப் பயன்படுத்தி உள்நுழைந்து கடவுச்சொல்லை அமைத்துக் கொள்ளலாம்.\n\nதொடர விரும்புகிறீர்களா?",
-            fontSize = 13.sp,
-            color = TnpaJetBlack
-          )
-        },
-        confirmButton = {
-          Button(
-            onClick = {
-              showRegenerateAllConfirmDialog = false
-              val res = AdminApprovalRepository.generatePasskeysForAllAdmins(admin)
-              if (res.isSuccess) {
-                Toast.makeText(context, "அனைத்து நிர்வாகிகள் கணக்குகளுக்கும் புதிய தனித்தனி Passkey உருவாக்கப்பட்டது!", Toast.LENGTH_LONG).show()
-                showPasskeyDirectoryDialog = true
-              } else {
-                Toast.makeText(context, "பிழை: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
-              }
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary)
-          ) {
-            Text("ஆம், பாஸ்கி உருவாக்கு", fontWeight = FontWeight.Bold)
-          }
-        },
-        dismissButton = {
-          OutlinedButton(onClick = { showRegenerateAllConfirmDialog = false }) {
-            Text("ரத்து செய்")
-          }
+  if (showPasskeyDirectoryDialog) {
+    AdminPasskeyDirectoryModalDialog(
+      callingAdmin = admin,
+      onDismiss = { showPasskeyDirectoryDialog = false },
+      onRegenerateAllKeys = {
+        val res = AdminApprovalRepository.generatePasskeysForAllAdmins(admin)
+        if (res.isSuccess) {
+          Toast.makeText(context, "அனைத்து நிர்வாகிகள் (${res.getOrNull()} நபர்கள்) கணக்குகளுக்கும் புதிய தனித்தனி Passkey உருவாக்கப்பட்டது!", Toast.LENGTH_LONG).show()
+        } else {
+          Toast.makeText(context, "பிழை: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
         }
-      )
-    }
+      }
+    )
+  }
+
+  if (showRegenerateAllConfirmDialog) {
+    AlertDialog(
+      onDismissRequest = { showRegenerateAllConfirmDialog = false },
+      title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.Key, contentDescription = null, tint = TnpaGold)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("அனைவருக்கும் தனித்தனி பாஸ்கி உருவாக்கவா?", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TnpaRedDark)
+        }
+      },
+      text = {
+        Text(
+          text = "அனைத்து மாநில மற்றும் மாவட்ட நிர்வாகிகள் கணக்குகளுக்கும் புதிய தனித்தனி One-Time Passkey உருவாக்கப்படும். அவர்கள் புதிய பாஸ்கியைப் பயன்படுத்தி உள்நுழைந்து கடவுச்சொல்லை அமைத்துக் கொள்ளலாம்.\n\nதொடர விரும்புகிறீர்களா?",
+          fontSize = 13.sp,
+          color = TnpaJetBlack
+        )
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            showRegenerateAllConfirmDialog = false
+            val res = AdminApprovalRepository.generatePasskeysForAllAdmins(admin)
+            if (res.isSuccess) {
+              Toast.makeText(context, "அனைத்து நிர்வாகிகள் கணக்குகளுக்கும் புதிய தனித்தனி Passkey உருவாக்கப்பட்டது!", Toast.LENGTH_LONG).show()
+              showPasskeyDirectoryDialog = true
+            } else {
+              Toast.makeText(context, "பிழை: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+            }
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary)
+        ) {
+          Text("ஆம், பாஸ்கி உருவாக்கு", fontWeight = FontWeight.Bold)
+        }
+      },
+      dismissButton = {
+        OutlinedButton(onClick = { showRegenerateAllConfirmDialog = false }) {
+          Text("ரத்து செய்")
+        }
+      }
+    )
   }
 }
 
@@ -2259,52 +2371,66 @@ fun CreateAdminModalDialog(
 // ============================================================================
 
 @Composable
-fun AuditLogsSubScreen(admin: AdminAccount) {
+fun AuditLogsSubScreen(
+  admin: AdminAccount,
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {}
+) {
   val logs = remember(admin) {
     AdminApprovalRepository.getAuditLogs(admin)
   }
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    Card(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 8.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
-      shape = RoundedCornerShape(10.dp)
-    ) {
-      Row(
+  LazyColumn(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(8.dp)
+  ) {
+    item {
+      topHeaderContent()
+    }
+    item {
+      tabsContent()
+    }
+    item {
+      Card(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+          .padding(horizontal = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(10.dp)
       ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(Icons.Default.History, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
-          Spacer(modifier = Modifier.width(8.dp))
-          Text("பாதுகாப்பு தணிக்கை பதிவுகள் (Audit Trail)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
-        Badge(containerColor = Color(0xFFE2E8F0)) {
-          Text("${logs.size} பதிவுகள்", color = TnpaJetBlack, fontSize = 11.sp, modifier = Modifier.padding(4.dp))
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.History, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("பாதுகாப்பு தணிக்கை பதிவுகள் (Audit Trail)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+          }
+          Badge(containerColor = Color(0xFFE2E8F0)) {
+            Text("${logs.size} பதிவுகள்", color = TnpaJetBlack, fontSize = 11.sp, modifier = Modifier.padding(4.dp))
+          }
         }
       }
     }
 
     if (logs.isEmpty()) {
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(32.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        Text("பதிவுகள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+      item {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+          contentAlignment = Alignment.Center
+        ) {
+          Text("பதிவுகள் ஏதுமில்லை", color = Color.Gray, fontSize = 13.sp)
+        }
       }
     } else {
-      LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxSize()
-      ) {
-        items(logs, key = { it.logId }) { entry ->
+      items(logs, key = { it.logId }) { entry ->
+        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
           Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
@@ -2346,6 +2472,10 @@ fun AuditLogsSubScreen(admin: AdminAccount) {
         }
       }
     }
+
+    item {
+      Spacer(modifier = Modifier.height(24.dp))
+    }
   }
 }
 
@@ -2356,6 +2486,8 @@ fun AuditLogsSubScreen(admin: AdminAccount) {
 @Composable
 fun JobApprovalsSubScreen(
   admin: AdminAccount,
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {},
   onActionTaken: () -> Unit
 ) {
   val context = LocalContext.current
@@ -2367,73 +2499,82 @@ fun JobApprovalsSubScreen(
   val displayedJobs = if (selectedFilter == null) allJobs else allJobs.filter { it.status == selectedFilter }
   val pendingCount = allJobs.count { it.status == JobPostingStatus.PENDING_APPROVAL }
 
-  Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+  LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    item {
+      topHeaderContent()
+    }
+    item {
+      tabsContent()
+    }
     // Header & Filter Chips
-    Card(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(12.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-      Column(modifier = Modifier.padding(12.dp)) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Work, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = "வேலைவாய்ப்பு விளம்பர ஒப்புதல் மையம்",
-              fontWeight = FontWeight.Bold,
-              fontSize = 14.sp,
-              color = TnpaJetBlack
-            )
-          }
+    item {
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+      ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(Icons.Default.Work, contentDescription = null, tint = TnpaRedPrimary, modifier = Modifier.size(20.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = "வேலைவாய்ப்பு விளம்பர ஒப்புதல் மையம்",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = TnpaJetBlack
+              )
+            }
 
-          if (pendingCount > 0) {
-            Badge(containerColor = TnpaRedPrimary) {
-              Text("$pendingCount நிலுவை", color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(2.dp))
+            if (pendingCount > 0) {
+              Badge(containerColor = TnpaRedPrimary) {
+                Text("$pendingCount நிலுவை", color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(2.dp))
+              }
             }
           }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(8.dp))
 
-        // Status Filter
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          FilterChip(
-            selected = selectedFilter == null,
-            onClick = { selectedFilter = null },
-            label = { Text("அனைத்தும் (${allJobs.size})", fontSize = 10.sp) }
-          )
-          FilterChip(
-            selected = selectedFilter == JobPostingStatus.PENDING_APPROVAL,
-            onClick = { selectedFilter = JobPostingStatus.PENDING_APPROVAL },
-            label = { Text("ஒப்புதல் தேவை ($pendingCount)", fontSize = 10.sp, fontWeight = FontWeight.Bold) }
-          )
-          FilterChip(
-            selected = selectedFilter == JobPostingStatus.APPROVED_ACTIVE,
-            onClick = { selectedFilter = JobPostingStatus.APPROVED_ACTIVE },
-            label = { Text("செயலில் உள்ளவை", fontSize = 10.sp) }
-          )
+          // Status Filter
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+          ) {
+            FilterChip(
+              selected = selectedFilter == null,
+              onClick = { selectedFilter = null },
+              label = { Text("அனைத்தும் (${allJobs.size})", fontSize = 10.sp) }
+            )
+            FilterChip(
+              selected = selectedFilter == JobPostingStatus.PENDING_APPROVAL,
+              onClick = { selectedFilter = JobPostingStatus.PENDING_APPROVAL },
+              label = { Text("ஒப்புதல் தேவை ($pendingCount)", fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+            )
+            FilterChip(
+              selected = selectedFilter == JobPostingStatus.APPROVED_ACTIVE,
+              onClick = { selectedFilter = JobPostingStatus.APPROVED_ACTIVE },
+              label = { Text("செயலில் உள்ளவை", fontSize = 10.sp) }
+            )
+          }
         }
       }
     }
 
     if (displayedJobs.isEmpty()) {
-      Box(modifier = Modifier.fillMaxSize().padding(20.dp), contentAlignment = Alignment.Center) {
-        Text("விளம்பரங்கள் எதுவும் இல்லை.", color = Color.Gray, fontSize = 13.sp)
+      item {
+        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+          Text("விளம்பரங்கள் எதுவும் இல்லை.", color = Color.Gray, fontSize = 13.sp)
+        }
       }
     } else {
-      LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-      ) {
-        items(displayedJobs, key = { it.id }) { job ->
+      items(displayedJobs, key = { it.id }) { job ->
+        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
           Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -2541,6 +2682,10 @@ fun JobApprovalsSubScreen(
           }
         }
       }
+    }
+
+    item {
+      Spacer(modifier = Modifier.height(24.dp))
     }
   }
 

@@ -95,8 +95,11 @@ import com.example.data.AdminApprovalRepository
 import com.example.model.StateLeaderItem
 import com.example.ui.components.AppDownloadModal
 import com.example.ui.components.DashboardMemberSearchBarAndDirectory
+import com.example.ui.components.StateLeadershipGrandShowcase
 import com.example.ui.components.TnpaOfficialEmblem
 import com.example.ui.components.TnpaOfficialFlagBanner
+import com.example.ui.components.TnpaOriginalFlag
+import com.example.ui.components.TnpaOriginalLogo
 import com.example.ui.theme.TnpaCharcoal
 import com.example.ui.theme.TnpaGold
 import com.example.ui.theme.TnpaGreen
@@ -147,20 +150,20 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
       ) {
-        // Centered Official Logo Emblem
-        TnpaOfficialEmblem(sizeDp = 80.dp)
+        // Centered Official Association Original Logo
+        TnpaOriginalLogo(size = 90.dp)
 
         Text(
-          text = "தமிழ்நாடு பெயிண்டர்கள் முன்னேற்ற சங்கம்",
+          text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
           color = TnpaPureWhite,
-          fontSize = 20.sp,
+          fontSize = 18.sp,
           fontWeight = FontWeight.Black,
           textAlign = TextAlign.Center,
-          lineHeight = 26.sp
+          lineHeight = 25.sp
         )
 
         Text(
-          text = "TAMIL NADU PAINTERS PROGRESSIVE ASSOCIATION (TN PA²)",
+          text = "TAMIL NADU PAINTERS & ARTISTS PROGRESSIVE ASSOCIATION (TNPA²)",
           color = TnpaGold,
           fontSize = 10.sp,
           fontWeight = FontWeight.Bold,
@@ -171,7 +174,16 @@ fun HomeScreen(
     }
 
     // ========================================================================
-    // 2. GOVERNMENT RECOGNITION BOX — GOLD COLOR BOX (அரசு அங்கீகாரம்)
+    // 2. STATE LEADERSHIP GRAND SHOWCASE (மாநில தலைமைப் பொறுப்பாளர்கள்)
+    // ========================================================================
+    Box(modifier = Modifier.padding(horizontal = 14.dp)) {
+      StateLeadershipGrandShowcase(
+        onLeaderClick = { onNavigateToTab(3) }
+      )
+    }
+
+    // ========================================================================
+    // 2.1. GOVERNMENT RECOGNITION BOX — GOLD COLOR BOX (அரசு அங்கீகாரம்)
     // ========================================================================
     Box(
       modifier = Modifier
@@ -234,7 +246,7 @@ fun HomeScreen(
     }
 
     // ========================================================================
-    // 2.1. SANGAM OFFICIAL FLAG (சங்கத்தின் அதிகாரப்பூர்வ கொடி)
+    // 2.2. SANGAM OFFICIAL FLAG (சங்கத்தின் அதிகாரப்பூர்வ கொடி)
     // ========================================================================
     Box(modifier = Modifier.padding(horizontal = 14.dp)) {
       TnpaOfficialFlagBanner()

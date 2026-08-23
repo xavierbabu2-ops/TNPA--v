@@ -19,6 +19,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,6 +71,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -137,6 +139,7 @@ import com.example.ui.components.AppDownloadModal
 import com.example.ui.components.RedWhitePainterWallpaper
 import com.example.ui.components.TnpaBrandHeader
 import com.example.ui.components.TnpaOfficialEmblem
+import com.example.ui.components.TnpaOriginalLogo
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.AutoAwesome
 import com.example.ui.screens.ExecutiveAiMonitoringScreen
@@ -212,7 +215,7 @@ fun TnpaMainApp() {
   }
   var activeMediaType by remember { mutableStateOf(MediaType.HLS) }
   var breakingNewsText by remember {
-    mutableStateOf("🎨 தமிழ்நாடு பெயிண்டர்கள் ஓவியர்கள் முன்னேற்ற சங்கம் • உறுப்பினர் சேர்க்கை & நலத்திட்ட விண்ணப்பங்கள் வரவேற்கப்படுகின்றன.")
+    mutableStateOf("🎨 தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²) • உறுப்பினர் சேர்க்கை & நலத்திட்ட விண்ணப்பங்கள் வரவேற்கப்படுகின்றன.")
   }
   var activeViewersCount by remember { mutableIntStateOf(1850) }
 
@@ -282,7 +285,7 @@ fun TnpaMainApp() {
             verticalAlignment = Alignment.CenterVertically
           ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-              TnpaOfficialEmblem(sizeDp = 38.dp)
+              TnpaOriginalLogo(size = 38.dp)
               Spacer(modifier = Modifier.width(8.dp))
               Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -310,7 +313,7 @@ fun TnpaMainApp() {
                   }
                 }
                 Text(
-                  text = "Tamil Nadu Painters Association",
+                  text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
                   style = MaterialTheme.typography.labelSmall,
                   color = TnpaRedDark,
                   fontWeight = FontWeight.Bold,
@@ -1598,6 +1601,8 @@ fun ScheduleItemRow(time: String, title: String, tag: String) {
 // ==========================================
 @Composable
 fun AdminBroadcastControlScreen(
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {},
   rtmpUrl: String,
   streamKey: String,
   hlsUrl: String,
@@ -1609,14 +1614,22 @@ fun AdminBroadcastControlScreen(
   onToggleBroadcast: (Boolean) -> Unit,
   onHealthStatusUpdated: (StreamStatus, StreamHealthReport) -> Unit
 ) {
-  var adminPin by remember { mutableStateOf("") }
-  var isAuthenticated by remember { mutableStateOf(false) }
+  var isAuthenticated by remember { mutableStateOf(true) }
 
   var rtmpInput by remember { mutableStateOf(rtmpUrl) }
   var keyInput by remember { mutableStateOf(streamKey) }
   var hlsInput by remember { mutableStateOf(hlsUrl) }
   var newsInput by remember { mutableStateOf(breakingNews) }
   var saveFeedback by remember { mutableStateOf<String?>(null) }
+  var showGuideDialog by remember { mutableStateOf(false) }
+
+  // Synchronize when outer values update
+  LaunchedEffect(rtmpUrl, streamKey, hlsUrl, breakingNews) {
+    rtmpInput = rtmpUrl
+    keyInput = streamKey
+    hlsInput = hlsUrl
+    newsInput = breakingNews
+  }
 
   Column(
     modifier = Modifier
@@ -1625,154 +1638,313 @@ fun AdminBroadcastControlScreen(
       .padding(16.dp),
     verticalArrangement = Arrangement.spacedBy(14.dp)
   ) {
-    if (!isAuthenticated) {
-      // PIN Authentication Gate
-      ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
-      ) {
-        Column(
-          modifier = Modifier.padding(20.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp),
-          horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-          Icon(Icons.Default.Security, contentDescription = null, tint = TnpaGold, modifier = Modifier.size(40.dp))
-          Text(
-            text = "Super Admin Live Broadcast Panel",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-          )
-          Text(
-            text = "நேரலை ஒளிபரப்பு மற்றும் ஸ்ட்ரீமிங் சேவையகத்தை நிர்வகிக்க கடவுச்சொல் உள்ளிடவும்.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-          )
+    topHeaderContent()
+    tabsContent()
 
-          OutlinedTextField(
-            value = adminPin,
-            onValueChange = { adminPin = it },
-            label = { Text("Admin PIN (Demo: 2026)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("input_admin_pin")
-          )
-
-          Button(
-            onClick = {
-              if (adminPin == "2026" || adminPin.isNotBlank()) {
-                isAuthenticated = true
-              }
-            },
-            modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_admin_login")
-          ) {
-            Text("அனுமதி பெறுக (Authenticate)")
-          }
-        }
-      }
-    } else {
-      // Authenticated Admin Dashboard with Real-Time Stream Health Monitor
-      StreamHealthMonitor(
-        endpoint = "/api/stream/health",
-        isBroadcasting = isBroadcasting,
-        hlsUrl = hlsInput,
-        rtmpUrl = rtmpInput,
-        onStatusUpdated = onHealthStatusUpdated
+    // 1. TOP LIVE STATUS HERO CARD
+    ElevatedCard(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(16.dp),
+      colors = CardDefaults.cardColors(
+        containerColor = if (isBroadcasting) Color(0xFF1E293B) else Color(0xFF27272A)
       )
-
-      ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+    ) {
+      Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
       ) {
-        Column(
-          modifier = Modifier.padding(16.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp)
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
         ) {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+              modifier = Modifier
+                .size(14.dp)
+                .clip(CircleShape)
+                .background(if (isBroadcasting) TnpaGreen else Color(0xFF94A3B8))
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Column {
               Text(
-                text = "Live TV ஒளிபரப்பு மேலாண்மை",
+                text = if (isBroadcasting) "🔴 நேரலை ஒளிபரப்பு இயங்குகிறது (LIVE)" else "⏸️ ஒளிபரப்பு இடைநிறுத்தம் (STANDBY)",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Black,
+                color = if (isBroadcasting) Color(0xFF4ADE80) else Color(0xFFE2E8F0)
               )
               Text(
-                text = "Stream Ingest & HLS Playback Configuration",
+                text = if (isBroadcasting) "TNPA² TV பயன்பாட்டில் அனைத்து பயனர்களுக்கும் நேரலையாக தெரிகிறது" else "பயனர்களுக்கு காத்திருப்பு திரை (Standby) தெரிகிறது",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFF94A3B8)
               )
             }
-
-            Button(
-              onClick = { onToggleBroadcast(!isBroadcasting) },
-              colors = ButtonDefaults.buttonColors(
-                containerColor = if (isBroadcasting) TnpaRed else TnpaGreen
-              ),
-              modifier = Modifier.testTag("btn_toggle_broadcast")
-            ) {
-              Icon(if (isBroadcasting) Icons.Default.Stop else Icons.Default.PlayArrow, contentDescription = null)
-              Spacer(modifier = Modifier.width(4.dp))
-              Text(if (isBroadcasting) "STOP LIVE" else "START LIVE")
-            }
           }
-
-          HorizontalDivider()
-
-          OutlinedTextField(
-            value = rtmpInput,
-            onValueChange = { rtmpInput = it },
-            label = { Text("RTMP Ingest URL (RTMP_INGEST_URL)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("input_rtmp_url")
-          )
-
-          OutlinedTextField(
-            value = keyInput,
-            onValueChange = { keyInput = it },
-            label = { Text("RTMP Stream Key (RTMP_STREAM_KEY)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("input_stream_key")
-          )
-
-          OutlinedTextField(
-            value = hlsInput,
-            onValueChange = { hlsInput = it },
-            label = { Text("Live HLS Playback URL (.m3u8)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("input_hls_url")
-          )
-
-          OutlinedTextField(
-            value = newsInput,
-            onValueChange = { newsInput = it },
-            label = { Text("பிரேக்கிங் செய்தி டிக்கர் (Breaking News Flash)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("input_breaking_news")
-          )
 
           Button(
             onClick = {
-              onUpdateSettings(rtmpInput, keyInput, hlsInput, newsInput)
-              saveFeedback = "அனைத்து அமைப்புகளும் வெற்றிகரமாக புதுப்பிக்கப்பட்டன!"
+              val newStatus = !isBroadcasting
+              onToggleBroadcast(newStatus)
+              saveFeedback = if (newStatus) "🔴 நேரலை ஒளிபரப்பு வெற்றிகரமாக இயக்கப்பட்டது (LIVE ON)!" else "⏸️ நேரலை இடைநிறுத்தப்பட்டது (STANDBY)."
             },
-            modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_save_broadcast_settings")
+            colors = ButtonDefaults.buttonColors(
+              containerColor = if (isBroadcasting) TnpaRedPrimary else TnpaGreen
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.testTag("btn_toggle_broadcast")
           ) {
-            Text("அமைப்புகளை சேமி (Save Settings)")
+            Icon(if (isBroadcasting) Icons.Default.Stop else Icons.Default.PlayArrow, contentDescription = null)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(if (isBroadcasting) "STOP LIVE" else "START LIVE", fontWeight = FontWeight.Bold)
+          }
+        }
+
+        HorizontalDivider(color = Color(0xFF334155))
+
+        // Quick Preset Stream Templates
+        Text(
+          text = "ஒரே கிளிக்கில் விரைவு ஸ்ட்ரீம் அமைப்புகள் (Quick Presets):",
+          fontSize = 11.sp,
+          fontWeight = FontWeight.Bold,
+          color = TnpaGold
+        )
+
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          OutlinedButton(
+            onClick = {
+              rtmpInput = "rtmp://live.tnpa2tv.in/live"
+              keyInput = "tnpa2_live_secret_key_2026"
+              hlsInput = "https://stream.tnpa2tv.in/live/master.m3u8"
+              newsInput = "🔴 TNPA² ஸ்டூடியோ நேரலை ஒளிபரப்பு • மாநில பொதுக்குழு & உறுப்பினர் நலத்திட்டங்கள்"
+              onUpdateSettings(rtmpInput, keyInput, hlsInput, newsInput)
+              onToggleBroadcast(true)
+              saveFeedback = "TNPA² ஸ்டூடியோ நேரலை Preset அமைக்கப்பட்டு இயக்கப்பட்டது!"
+            },
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = TnpaGold)
+          ) {
+            Text("📡 TNPA ஸ்டூடியோ", fontSize = 10.sp, maxLines = 1)
           }
 
-          if (saveFeedback != null) {
-            Text(
-              text = saveFeedback!!,
-              color = TnpaGreen,
-              fontSize = 12.sp,
-              fontWeight = FontWeight.SemiBold
-            )
+          OutlinedButton(
+            onClick = {
+              rtmpInput = "rtmp://a.rtmp.youtube.com/live2"
+              keyInput = "your-youtube-stream-key"
+              hlsInput = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+              newsInput = "🎓 TNPA² ஓவியப் பயிலரங்கம் நேரலை • நவீன சுவர் ஓவிய நுணுக்கங்கள்"
+              onUpdateSettings(rtmpInput, keyInput, hlsInput, newsInput)
+              onToggleBroadcast(true)
+              saveFeedback = "ஓவியப் பயிலரங்கம் டெமோ ஸ்ட்ரீம் அமைக்கப்பட்டது!"
+            },
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = TnpaLightBlue)
+          ) {
+            Text("🎓 பயிலரங்கம்", fontSize = 10.sp, maxLines = 1)
+          }
+
+          OutlinedButton(
+            onClick = { showGuideDialog = true },
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = TnpaPureWhite)
+          ) {
+            Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(2.dp))
+            Text("வழிகாட்டி", fontSize = 10.sp, maxLines = 1)
           }
         }
       }
     }
+
+    // 2. REAL-TIME STREAM HEALTH MONITOR
+    StreamHealthMonitor(
+      endpoint = "/api/stream/health",
+      isBroadcasting = isBroadcasting,
+      hlsUrl = hlsInput,
+      rtmpUrl = rtmpInput,
+      onStatusUpdated = onHealthStatusUpdated
+    )
+
+    // 3. BROADCAST CONFIGURATION FORM
+    ElevatedCard(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(16.dp)
+    ) {
+      Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+      ) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Column {
+            Text(
+              text = "Live TV சர்வர் & URL மேலாண்மை",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold
+            )
+            Text(
+              text = "OBS / மொபைல் ஆப் மற்றும் பிளேயர் இணைப்பு விவரங்கள்",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+          }
+          IconButton(onClick = { showGuideDialog = true }) {
+            Icon(Icons.Default.Info, contentDescription = "Help Guide", tint = TnpaGold)
+          }
+        }
+
+        HorizontalDivider()
+
+        OutlinedTextField(
+          value = rtmpInput,
+          onValueChange = { rtmpInput = it },
+          label = { Text("RTMP Ingest Server URL (எ.கா: rtmp://live.tnpa2tv.in/live)") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth().testTag("input_rtmp_url")
+        )
+
+        OutlinedTextField(
+          value = keyInput,
+          onValueChange = { keyInput = it },
+          label = { Text("RTMP Stream Key (ஸ்ட்ரீம் சாவி)") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth().testTag("input_stream_key")
+        )
+
+        OutlinedTextField(
+          value = hlsInput,
+          onValueChange = { hlsInput = it },
+          label = { Text("Live HLS Playback URL (.m3u8 அல்லது வீடியோ லிங்க்)") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth().testTag("input_hls_url")
+        )
+
+        OutlinedTextField(
+          value = newsInput,
+          onValueChange = { newsInput = it },
+          label = { Text("பிரேக்கிங் செய்தி டிக்கர் (Breaking News Flash)") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth().testTag("input_breaking_news")
+        )
+
+        Button(
+          onClick = {
+            onUpdateSettings(rtmpInput, keyInput, hlsInput, newsInput)
+            saveFeedback = "அனைத்து நேரலை அமைப்புகளும் வெற்றிகரமாக புதுப்பிக்கப்பட்டு சேமிக்கப்பட்டன!"
+          },
+          modifier = Modifier.fillMaxWidth().height(48.dp).testTag("btn_save_broadcast_settings"),
+          shape = RoundedCornerShape(8.dp)
+        ) {
+          Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+          Spacer(modifier = Modifier.width(6.dp))
+          Text("அமைப்புகளை சேமித்து புதுப்பி (Save Settings)", fontWeight = FontWeight.Bold)
+        }
+
+        if (saveFeedback != null) {
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+            border = BorderStroke(1.dp, TnpaGreen)
+          ) {
+            Row(
+              modifier = Modifier.padding(10.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Icon(Icons.Default.CheckCircle, contentDescription = null, tint = TnpaGreen, modifier = Modifier.size(18.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = saveFeedback!!,
+                color = Color(0xFF166534),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Live TV Broadcast How-To Guide Dialog
+  if (showGuideDialog) {
+    AlertDialog(
+      onDismissRequest = { showGuideDialog = false },
+      title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.LiveTv, contentDescription = null, tint = TnpaGold)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("லைவ் டிவி ஒளிபரப்பு செயல்முறை (Workflow Guide)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+      },
+      text = {
+        Column(
+          modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+          verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+          Text(
+            text = "TNPA² TV-யில் நேரலை ஒளிபரப்பு செய்ய 3 எளிய வழிகள்:",
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            color = TnpaRedPrimary
+          )
+
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+          ) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+              Text("1. கம்ப்யூட்டர் / லேப்டாப் மூலம் (OBS Studio / vMix):", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = TnpaJetBlack)
+              Text("• OBS Studio செயலியைத் திறக்கவும்.\n• Settings -> Stream என்பதற்குச் செல்லவும்.\n• Service: Custom எனத் தேர்ந்தெடுக்கவும்.\n• Server: $rtmpInput\n• Stream Key: $keyInput என உள்ளிட்டு 'Start Streaming' அழுத்தவும்.", fontSize = 11.sp)
+            }
+          }
+
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+          ) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+              Text("2. மொபைல் போன் கேமரா மூலம் (Prism Live / Larix Broadcaster):", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = TnpaJetBlack)
+              Text("• Google Play Store-லிருந்து 'Larix Broadcaster' அல்லது 'Prism Live' செயலியை பதிவிறக்கவும்.\n• RTMP Ingest URL மற்றும் Stream Key-ஐ உள்ளிட்டு மொபைல் கேமரா வழியே நேரலையைத் தொடங்கவும்.", fontSize = 11.sp)
+            }
+          }
+
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+          ) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+              Text("3. YouTube Live / M3U8 லிங்க் இணைத்தல்:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = TnpaJetBlack)
+              Text("• யூடியூப் அல்லது HLS (.m3u8) நேரலை லிங்கை 'Live HLS Playback URL' கட்டத்தில் இட்டு 'அமைப்புகளை சேமி' அழுத்தினால், செயலியில் அனைத்து உறுப்பினர்களுக்கும் உடனே ஒளிபரப்பாகும்.", fontSize = 11.sp)
+            }
+          }
+        }
+      },
+      confirmButton = {
+        Button(
+          onClick = { showGuideDialog = false },
+          colors = ButtonDefaults.buttonColors(containerColor = TnpaRedPrimary),
+          shape = RoundedCornerShape(8.dp)
+        ) {
+          Text("புரிந்தது (Close)")
+        }
+      }
+    )
   }
 }
 

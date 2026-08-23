@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="256dp"
+    android:height="256dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <!-- 1. Outer Circular Red Border -->
+    <path
+        android:fillColor="#D32F2F"
+        android:strokeColor="#111111"
+        android:strokeWidth="2"
+        android:pathData="M128,8 A120,120 0 1,1 127.9,8 Z" />
+
+    <!-- Outer Gold / White Highlight Ring -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeAlpha="0.8"
+        android:pathData="M128,12 A116,116 0 1,1 127.9,12 Z" />
+
+    <!-- 2. Inner White Disc -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#111111"
+        android:strokeWidth="2"
+        android:pathData="M128,42 A86,86 0 1,1 127.9,42 Z" />
+
+    <!-- 3. Side Dots / Yin-Yang Style Emblems in Red Ring -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,128 A7,7 0 1,1 37.9,128 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M38,128 A3,3 0 1,1 37.9,128 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M218,128 A7,7 0 1,1 217.9,128 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M218,128 A3,3 0 1,1 217.9,128 Z" />
+
+    <!-- 4. Paint Roller (Right Diagonal) -->
+    <path
+        android:strokeColor="#334155"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M140,135 L160,115 L160,65 L178,65" />
+    <!-- Roller Cylinder -->
+    <path
+        android:fillColor="#0F172A"
+        android:strokeColor="#000000"
+        android:strokeWidth="1.5"
+        android:pathData="M168,42 H192 V88 H168 Z" />
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M170,44 H190 V60 H170 Z" />
+
+    <!-- 5. Paint Flat Brush (Left Diagonal) -->
+    <path
+        android:fillColor="#D97706"
+        android:strokeColor="#000000"
+        android:strokeWidth="1.5"
+        android:pathData="M110,135 L90,150 L68,105 L88,90 Z" />
+    <!-- Metal Ferrule -->
+    <path
+        android:fillColor="#94A3B8"
+        android:strokeColor="#000000"
+        android:strokeWidth="1.5"
+        android:pathData="M70,105 L90,90 L82,75 L62,90 Z" />
+    <!-- Bristles -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M62,90 L82,75 L74,55 L54,70 Z" />
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M56,73 L76,58 L72,50 L52,65 Z" />
+
+    <!-- 6. Fine Artist Round Brush (Center Vertical) -->
+    <path
+        android:fillColor="#451A03"
+        android:strokeColor="#000000"
+        android:strokeWidth="1"
+        android:pathData="M125,140 H131 V70 H125 Z" />
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M124,70 H132 V55 H124 Z" />
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M124,55 C124,40 128,32 128,32 C128,32 132,40 132,55 Z" />
+
+    <!-- 7. Raised Black Fist Clenched (Center Foreground) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M115,190 H141 V145 H115 Z" />
+    <!-- Fist Mass -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M102,148 C98,125 110,110 128,110 C146,110 158,125 154,148 C150,165 140,172 128,172 C116,172 106,165 102,148 Z" />
+    <!-- Knuckle White Lines -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M110,122 C118,118 126,118 134,122" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M108,132 C118,128 128,128 138,132" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M110,142 C120,138 130,138 140,142" />
+
+    <!-- 8. Bold "TN PA²" Text -->
+    <!-- T -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M92,198 H106 V203 H101 V218 H97 V203 H92 Z" />
+    <!-- N -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M109,198 H113 L121,211 V198 H125 V218 H121 L113,205 V218 H109 Z" />
+    <!-- P -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M131,198 H141 C145,198 148,201 148,205 C148,209 145,212 141,212 H135 V218 H131 Z M135,202 V208 H141 C143,208 144,207 144,205 C144,203 143,202 141,202 Z" />
+    <!-- A -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M152,198 H157 L164,218 H159 L158,214 H151 L150,218 H145 Z M152,210 H157 L154.5,203 Z" />
+    <!-- ² -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M165,194 H171 V197 L167,202 H171 V204 H165 V202 L169,197 H165 Z" />
+
+</vector>

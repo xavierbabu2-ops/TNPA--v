@@ -140,6 +140,8 @@ import java.util.Locale
 @Composable
 fun AdminExecutiveDashboardSubScreen(
   admin: AdminAccount,
+  topHeaderContent: @Composable () -> Unit = {},
+  tabsContent: @Composable () -> Unit = {},
   onNavigateToTab: (Int) -> Unit,
   onNavigateToAiMonitoring: () -> Unit,
   streamStatus: StreamStatus,
@@ -178,9 +180,18 @@ fun AdminExecutiveDashboardSubScreen(
       .padding(bottom = 24.dp),
     verticalArrangement = Arrangement.spacedBy(14.dp)
   ) {
-    // ========================================================================
-    // 1. EXECUTIVE WELCOME & APP DOWNLOAD HERO BANNER
-    // ========================================================================
+    topHeaderContent()
+    tabsContent()
+
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 12.dp),
+      verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+      // ========================================================================
+      // 1. EXECUTIVE WELCOME & APP DOWNLOAD HERO BANNER
+      // ========================================================================
     Card(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(16.dp),
@@ -645,6 +656,7 @@ fun AdminExecutiveDashboardSubScreen(
       }
     }
   }
+}
 
   // ==========================================================================
   // BATCH ID CARD GENERATOR DIALOG

@@ -416,7 +416,7 @@ fun MemberRegistrationScreen(
       val waNumber = if (whatsappNumber.isNotBlank()) whatsappNumber else mobileNumber
       val cleanNumber = waNumber.replace("+", "").replace(" ", "").replace("-", "")
       val formattedWa = if (cleanNumber.length == 10) "91$cleanNumber" else cleanNumber
-      val msg = "🏛️ தமிழ்நாடு பெயிண்டர்கள் சங்கம் (TNPA)\nஉறுப்பினர் சரிபார்ப்பு OTP குறியீடு: *$generatedOtp*\n(செல்லத்தக்க நேரம்: 2 நிமிடங்கள்)"
+      val msg = "🏛️ தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)\nஉறுப்பினர் சரிபார்ப்பு OTP குறியீடு: *$generatedOtp*\n(செல்லத்தக்க நேரம்: 2 நிமிடங்கள்)"
       val waIntent = Intent(Intent.ACTION_VIEW).apply {
         data = android.net.Uri.parse("https://api.whatsapp.com/send?phone=$formattedWa&text=${java.net.URLEncoder.encode(msg, "UTF-8")}")
       }
@@ -2602,7 +2602,7 @@ fun TnpaMemberIdCardView(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                   Text("TNPA² SMART PASS", color = TnpaPureWhite, fontWeight = FontWeight.Black, fontSize = 13.sp)
-                  Text("தமிழ்நாடு பெயிண்டர்கள் சங்கம்", color = TnpaRedSoft, fontSize = 9.sp)
+                  Text("தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)", color = TnpaRedSoft, fontSize = 8.sp, maxLines = 1)
                 }
               }
               Box(
@@ -2699,8 +2699,8 @@ fun TnpaMemberIdCardView(
           ) {
             TnpaOfficialEmblem(sizeDp = 48.dp)
             Text(
-              text = "தமிழ்நாடு பெயிண்டர்கள் ஓவியர்கள் சங்கம்",
-              fontSize = 12.sp,
+              text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
+              fontSize = 11.sp,
               fontWeight = FontWeight.Black,
               color = TnpaJetBlack,
               textAlign = TextAlign.Center

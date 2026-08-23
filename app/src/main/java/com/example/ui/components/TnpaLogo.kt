@@ -363,7 +363,7 @@ fun TnpaBrandHeader(
         }
       }
       Text(
-        text = "தமிழ்நாடு பெயிண்டர்கள் முன்னேற்ற சங்கம்",
+        text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
         style = MaterialTheme.typography.labelSmall,
         color = TnpaRedDark,
         fontWeight = FontWeight.SemiBold,
