@@ -125,6 +125,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Phone
@@ -138,8 +139,10 @@ import com.example.model.StreamStatus
 import com.example.ui.components.AppDownloadModal
 import com.example.ui.components.RedWhitePainterWallpaper
 import com.example.ui.components.TnpaBrandHeader
+import com.example.ui.components.TnpaBrandingCustomizerModal
 import com.example.ui.components.TnpaOfficialEmblem
 import com.example.ui.components.TnpaOriginalLogo
+import com.example.ui.components.TnpaTopNavBar
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.AutoAwesome
 import com.example.ui.screens.ExecutiveAiMonitoringScreen
@@ -276,6 +279,12 @@ fun TnpaMainApp() {
 
   // App Download Distribution Modal State
   var showAppDownloadModal by remember { mutableStateOf(false) }
+  // Association Branding (Logo & Flag) Customizer Modal State
+  var showBrandingModal by remember { mutableStateOf(false) }
+
+  if (showBrandingModal) {
+    TnpaBrandingCustomizerModal(onDismiss = { showBrandingModal = false })
+  }
 
   Scaffold(
     topBar = {
@@ -286,8 +295,28 @@ fun TnpaMainApp() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              TnpaOriginalLogo(size = 38.dp)
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { showBrandingModal = true }
+                .padding(2.dp)
+            ) {
+              Box(contentAlignment = Alignment.Center) {
+                TnpaOriginalLogo(size = 38.dp)
+                // Small Camera overlay hint
+                Box(
+                  modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(TnpaJetBlack)
+                    .border(1.dp, TnpaGold, CircleShape),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(Icons.Default.Edit, contentDescription = "Edit Logo", tint = TnpaGold, modifier = Modifier.size(8.dp))
+                }
+              }
               Spacer(modifier = Modifier.width(8.dp))
               Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -327,6 +356,18 @@ fun TnpaMainApp() {
 
             // Quick Buttons in Header
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+              // Branding / Logo & Flag Quick Customizer Button
+              IconButton(
+                onClick = { showBrandingModal = true },
+                modifier = Modifier
+                  .size(32.dp)
+                  .clip(RoundedCornerShape(8.dp))
+                  .background(Color(0xFFFEF2F2))
+                  .border(1.dp, TnpaRedPrimary.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+              ) {
+                Icon(Icons.Default.Palette, contentDescription = "Change Logo / Flag", tint = TnpaRedPrimary, modifier = Modifier.size(17.dp))
+              }
+
               // App Download Quick Button
               Button(
                 onClick = { showAppDownloadModal = true },
@@ -431,85 +472,11 @@ fun TnpaMainApp() {
           }
         }
 
-        // Scrollable Navigation Tabs (White & Red with Black Highlights)
-        ScrollableTabRow(
-          selectedTabIndex = selectedTab,
-          edgePadding = 8.dp,
-          containerColor = TnpaPureWhite,
-          contentColor = TnpaRedPrimary,
-          modifier = Modifier.fillMaxWidth()
-        ) {
-          Tab(
-            selected = selectedTab == 0,
-            onClick = { selectedTab = 0 },
-            text = { Text("முகப்பு (Home)", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_home")
-          )
-          Tab(
-            selected = selectedTab == 1,
-            onClick = { selectedTab = 1 },
-            text = { Text("உறுப்பினர் பதிவு", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_register")
-          )
-          Tab(
-            selected = selectedTab == 2,
-            onClick = { selectedTab = 2 },
-            text = { Text("TNPA² TV (நேரலை)", fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.LiveTv, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_live_tv")
-          )
-          Tab(
-            selected = selectedTab == 3,
-            onClick = { selectedTab = 3 },
-            text = { Text("வீடியோ கான்பிரன்ஸ்", fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.VideoCall, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_video_conference")
-          )
-          Tab(
-            selected = selectedTab == 4,
-            onClick = { selectedTab = 4 },
-            text = { Text("🤖 AI வழிகாட்டி", fontWeight = if (selectedTab == 4) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.Psychology, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_ai_monitoring")
-          )
-          Tab(
-            selected = selectedTab == 5,
-            onClick = { selectedTab = 5 },
-            text = { Text("ஓவியக் கலைக்கூடம்", fontWeight = if (selectedTab == 5) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.Palette, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_art_gallery")
-          )
-          Tab(
-            selected = selectedTab == 6,
-            onClick = { selectedTab = 6 },
-            text = { Text("தொழிலாளர் நலவாரியங்கள்", fontWeight = if (selectedTab == 6) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_welfare")
-          )
-          Tab(
-            selected = selectedTab == 7,
-            onClick = { selectedTab = 7 },
-            text = { Text("நிர்வாகிகள்", fontWeight = if (selectedTab == 7) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_officers")
-          )
-          Tab(
-            selected = selectedTab == 8,
-            onClick = { selectedTab = 8 },
-            text = { Text("Admin கட்டுப்பாடு", fontWeight = if (selectedTab == 8) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_admin")
-          )
-          Tab(
-            selected = selectedTab == 9,
-            onClick = { selectedTab = 9 },
-            text = { Text("இணையதளம் (Web)", fontWeight = if (selectedTab == 9) FontWeight.Bold else FontWeight.Normal) },
-            icon = { Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            modifier = Modifier.testTag("tab_web_view")
-          )
-        }
+        // Ultra-Smooth Scrollable Navigation Bar (Fixed Scrolling with Left/Right Arrows)
+        TnpaTopNavBar(
+          selectedTab = selectedTab,
+          onTabSelected = { selectedTab = it }
+        )
 
         when (selectedTab) {
           0 -> HomeScreen(onNavigateToTab = { selectedTab = it })

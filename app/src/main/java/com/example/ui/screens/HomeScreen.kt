@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.HealthAndSafety
@@ -96,6 +97,7 @@ import com.example.model.StateLeaderItem
 import com.example.ui.components.AppDownloadModal
 import com.example.ui.components.DashboardMemberSearchBarAndDirectory
 import com.example.ui.components.StateLeadershipGrandShowcase
+import com.example.ui.components.TnpaBrandingCustomizerModal
 import com.example.ui.components.TnpaOfficialEmblem
 import com.example.ui.components.TnpaOfficialFlagBanner
 import com.example.ui.components.TnpaOriginalFlag
@@ -118,6 +120,11 @@ fun HomeScreen(
 ) {
   val context = LocalContext.current
   var showDownloadModal by remember { mutableStateOf(false) }
+  var showBrandingModal by remember { mutableStateOf(false) }
+
+  if (showBrandingModal) {
+    TnpaBrandingCustomizerModal(onDismiss = { showBrandingModal = false })
+  }
 
   Column(
     modifier = Modifier
@@ -150,8 +157,24 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
       ) {
-        // Centered Official Association Original Logo
-        TnpaOriginalLogo(size = 90.dp)
+        // Centered Official Association Original Logo with Edit affordance
+        Box(
+          contentAlignment = Alignment.Center,
+          modifier = Modifier.clickable { showBrandingModal = true }
+        ) {
+          TnpaOriginalLogo(size = 90.dp)
+          Box(
+            modifier = Modifier
+              .align(Alignment.BottomEnd)
+              .size(26.dp)
+              .clip(CircleShape)
+              .background(TnpaJetBlack)
+              .border(1.5.dp, TnpaGold, CircleShape),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(Icons.Default.Edit, contentDescription = "Edit Logo", tint = TnpaGold, modifier = Modifier.size(14.dp))
+          }
+        }
 
         Text(
           text = "தமிழ்நாடு பெயிண்டர்கள் மற்றும் ஓவியர்கள் முன்னேற்ற சங்கம் (TNPA²)",
@@ -249,7 +272,7 @@ fun HomeScreen(
     // 2.2. SANGAM OFFICIAL FLAG (சங்கத்தின் அதிகாரப்பூர்வ கொடி)
     // ========================================================================
     Box(modifier = Modifier.padding(horizontal = 14.dp)) {
-      TnpaOfficialFlagBanner()
+      TnpaOfficialFlagBanner(onCustomizeClick = { showBrandingModal = true })
     }
 
     // ========================================================================

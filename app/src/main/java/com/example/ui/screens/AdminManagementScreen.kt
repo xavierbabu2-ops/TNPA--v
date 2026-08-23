@@ -4,9 +4,11 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountTree
@@ -52,6 +55,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Refresh
@@ -87,20 +91,25 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -868,65 +877,136 @@ fun AdminSubScreenTabsRow(
   selectedTab: Int,
   onTabSelected: (Int) -> Unit
 ) {
-  ScrollableTabRow(
-    selectedTabIndex = selectedTab,
-    containerColor = Color.White,
-    contentColor = TnpaRedPrimary,
-    edgePadding = 12.dp,
-    modifier = Modifier.fillMaxWidth()
+  val adminTabScrollState = rememberScrollState()
+  val coroutineScope = rememberCoroutineScope()
+
+  LaunchedEffect(selectedTab) {
+    val approxWidth = 180
+    val targetOffset = (selectedTab * approxWidth - 100).coerceAtLeast(0)
+    adminTabScrollState.animateScrollTo(targetOffset)
+  }
+
+  Surface(
+    modifier = Modifier.fillMaxWidth(),
+    color = Color.White,
+    shadowElevation = 2.dp
   ) {
-    Tab(
-      selected = selectedTab == 0,
-      onClick = { onTabSelected(0) },
-      text = { Text("📊 டேஷ்போர்டு", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
-      icon = { Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(16.dp)) },
-      modifier = Modifier.testTag("admin_tab_dashboard")
-    )
-    Tab(
-      selected = selectedTab == 1,
-      onClick = { onTabSelected(1) },
-      text = { Text("உறுப்பினர் ஒப்புதல்", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
-      icon = { Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp)) },
-      modifier = Modifier.testTag("admin_tab_members")
-    )
-    Tab(
-      selected = selectedTab == 2,
-      onClick = { onTabSelected(2) },
-      text = { Text("நலத்திட்ட ஒப்புதல்", fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) },
-      icon = { Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp)) },
-      modifier = Modifier.testTag("admin_tab_welfare")
-    )
-    Tab(
-      selected = selectedTab == 3,
-      onClick = { onTabSelected(3) },
-      text = { Text("வேலைவாய்ப்பு ஒப்புதல்", fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Normal) },
-      icon = { Icon(Icons.Default.Work, contentDescription = null, modifier = Modifier.size(16.dp)) },
-      modifier = Modifier.testTag("admin_tab_jobs")
-    )
-    if (admin.role == AdminRole.SUPER_ADMIN) {
-      Tab(
-        selected = selectedTab == 4,
-        onClick = { onTabSelected(4) },
-        text = { Text("நிர்வாகிகள் கட்டமைப்பு", fontWeight = if (selectedTab == 4) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_hierarchy")
-      )
-    }
-    Tab(
-      selected = selectedTab == 5,
-      onClick = { onTabSelected(5) },
-      text = { Text("Audit Logs", fontWeight = if (selectedTab == 5) FontWeight.Bold else FontWeight.Normal) },
-      icon = { Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp)) },
-      modifier = Modifier.testTag("admin_tab_audit")
-    )
-    if (admin.role == AdminRole.SUPER_ADMIN || admin.role == AdminRole.STATE_ADMIN) {
-      Tab(
-        selected = selectedTab == 6,
-        onClick = { onTabSelected(6) },
-        text = { Text("TV நேரலை கட்டுப்பாடு", fontWeight = if (selectedTab == 6) FontWeight.Bold else FontWeight.Normal) },
-        icon = { Icon(Icons.Default.LiveTv, contentDescription = null, modifier = Modifier.size(16.dp)) },
-        modifier = Modifier.testTag("admin_tab_tv")
-      )
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 6.dp, horizontal = 6.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      if (adminTabScrollState.value > 10) {
+        IconButton(
+          onClick = {
+            coroutineScope.launch {
+              adminTabScrollState.animateScrollTo((adminTabScrollState.value - 260).coerceAtLeast(0))
+            }
+          },
+          modifier = Modifier
+            .size(26.dp)
+            .clip(CircleShape)
+            .background(TnpaRedSoft)
+        ) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Scroll Back",
+            tint = TnpaRedPrimary,
+            modifier = Modifier.size(15.dp)
+          )
+        }
+        Spacer(modifier = Modifier.width(4.dp))
+      }
+
+      Row(
+        modifier = Modifier
+          .weight(1f)
+          .horizontalScroll(adminTabScrollState),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        // Tab Item Helper
+        @Composable
+        fun AdminTabChip(
+          index: Int,
+          title: String,
+          icon: androidx.compose.ui.graphics.vector.ImageVector,
+          testTag: String
+        ) {
+          val isSelected = selectedTab == index
+          Box(
+            modifier = Modifier
+              .shadow(if (isSelected) 3.dp else 1.dp, RoundedCornerShape(10.dp))
+              .clip(RoundedCornerShape(10.dp))
+              .background(
+                if (isSelected) Brush.horizontalGradient(listOf(TnpaRedPrimary, TnpaRedDark))
+                else Brush.horizontalGradient(listOf(Color.White, Color(0xFFF8FAFC)))
+              )
+              .border(
+                BorderStroke(if (isSelected) 1.5.dp else 1.dp, if (isSelected) TnpaGold else Color(0xFFE2E8F0)),
+                RoundedCornerShape(10.dp)
+              )
+              .clickable { onTabSelected(index) }
+              .padding(horizontal = 10.dp, vertical = 6.dp)
+              .testTag(testTag),
+            contentAlignment = Alignment.Center
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+              Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) TnpaGold else TnpaRedPrimary,
+                modifier = Modifier.size(15.dp)
+              )
+              Text(
+                text = title,
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                fontSize = 11.sp,
+                color = if (isSelected) Color.White else TnpaJetBlack
+              )
+            }
+          }
+        }
+
+        AdminTabChip(0, "📊 டேஷ்போர்டு", Icons.Default.Dashboard, "admin_tab_dashboard")
+        AdminTabChip(1, "உறுப்பினர் ஒப்புதல்", Icons.Default.Badge, "admin_tab_members")
+        AdminTabChip(2, "நலத்திட்ட ஒப்புதல்", Icons.Default.VolunteerActivism, "admin_tab_welfare")
+        AdminTabChip(3, "வேலைவாய்ப்பு ஒப்புதல்", Icons.Default.Work, "admin_tab_jobs")
+        if (admin.role == AdminRole.SUPER_ADMIN) {
+          AdminTabChip(4, "நிர்வாகிகள் கட்டமைப்பு", Icons.Default.AccountTree, "admin_tab_hierarchy")
+        }
+        AdminTabChip(5, "Audit Logs", Icons.Default.History, "admin_tab_audit")
+        if (admin.role == AdminRole.SUPER_ADMIN || admin.role == AdminRole.STATE_ADMIN) {
+          AdminTabChip(6, "TV நேரலை கட்டுப்பாடு", Icons.Default.LiveTv, "admin_tab_tv")
+          AdminTabChip(7, "சங்க லோகோ & கொடி", Icons.Default.Palette, "admin_tab_branding")
+        }
+      }
+
+      if (adminTabScrollState.value < adminTabScrollState.maxValue - 10) {
+        Spacer(modifier = Modifier.width(4.dp))
+        IconButton(
+          onClick = {
+            coroutineScope.launch {
+              adminTabScrollState.animateScrollTo((adminTabScrollState.value + 260).coerceAtMost(adminTabScrollState.maxValue))
+            }
+          },
+          modifier = Modifier
+            .size(26.dp)
+            .clip(CircleShape)
+            .background(TnpaRedSoft)
+        ) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = "Scroll Forward",
+            tint = TnpaRedPrimary,
+            modifier = Modifier.size(15.dp)
+          )
+        }
+      }
     }
   }
 }
@@ -1070,6 +1150,12 @@ fun AdminAuthorizedDashboardView(
           onUpdateSettings = onUpdateSettings,
           onToggleBroadcast = onToggleBroadcast,
           onHealthStatusUpdated = onHealthStatusUpdated
+        )
+      }
+      7 -> {
+        AdminBrandingManagementSubScreen(
+          topHeaderContent = headerContent,
+          tabsContent = tabsContent
         )
       }
     }

@@ -36,6 +36,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Call
@@ -76,9 +78,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -87,6 +91,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -330,28 +335,106 @@ fun LeadershipContactScreen() {
     }
 
     // ========================================================================
-    // 2. 8 ADMINISTRATIVE HIERARCHY LEVEL TABS (SCROLLABLE)
+    // 2. 8 ADMINISTRATIVE HIERARCHY LEVEL TABS (SMOOTH HORIZONTAL SCROLL)
     // ========================================================================
-    ScrollableTabRow(
-      selectedTabIndex = selectedLevel.orderIndex - 1,
-      edgePadding = 10.dp,
-      containerColor = TnpaPureWhite,
-      contentColor = TnpaRedPrimary,
-      modifier = Modifier.fillMaxWidth()
+    val hierarchyScrollState = rememberScrollState()
+    val hierarchyScope = rememberCoroutineScope()
+
+    LaunchedEffect(selectedLevel) {
+      val targetOffset = ((selectedLevel.orderIndex - 1) * 160 - 50).coerceAtLeast(0)
+      hierarchyScrollState.animateScrollTo(targetOffset)
+    }
+
+    Surface(
+      modifier = Modifier.fillMaxWidth(),
+      color = TnpaPureWhite,
+      shadowElevation = 2.dp
     ) {
-      AdminHierarchyLevel.values().forEach { level ->
-        Tab(
-          selected = selectedLevel == level,
-          onClick = { selectedLevel = level },
-          text = {
-            Text(
-              text = "${level.iconEmoji} ${level.labelTamil}",
-              fontWeight = if (selectedLevel == level) FontWeight.Black else FontWeight.Normal,
-              fontSize = 12.sp
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(vertical = 6.dp, horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        if (hierarchyScrollState.value > 10) {
+          IconButton(
+            onClick = {
+              hierarchyScope.launch {
+                hierarchyScrollState.animateScrollTo((hierarchyScrollState.value - 240).coerceAtLeast(0))
+              }
+            },
+            modifier = Modifier
+              .size(26.dp)
+              .clip(CircleShape)
+              .background(TnpaRedSoft)
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = "Previous Levels",
+              tint = TnpaRedPrimary,
+              modifier = Modifier.size(15.dp)
             )
-          },
-          modifier = Modifier.testTag("tab_level_${level.id}")
-        )
+          }
+          Spacer(modifier = Modifier.width(4.dp))
+        }
+
+        Row(
+          modifier = Modifier
+            .weight(1f)
+            .horizontalScroll(hierarchyScrollState),
+          horizontalArrangement = Arrangement.spacedBy(6.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          AdminHierarchyLevel.values().forEach { level ->
+            val isSelected = selectedLevel == level
+            Box(
+              modifier = Modifier
+                .shadow(if (isSelected) 3.dp else 1.dp, RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .background(
+                  if (isSelected) Brush.horizontalGradient(listOf(TnpaRedPrimary, TnpaRedDark))
+                  else Brush.horizontalGradient(listOf(TnpaPureWhite, TnpaOffWhite))
+                )
+                .border(
+                  BorderStroke(if (isSelected) 1.5.dp else 1.dp, if (isSelected) TnpaGold else Color(0xFFE2E8F0)),
+                  RoundedCornerShape(10.dp)
+                )
+                .clickable { selectedLevel = level }
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .testTag("tab_level_${level.id}"),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = "${level.iconEmoji} ${level.labelTamil}",
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                fontSize = 12.sp,
+                color = if (isSelected) TnpaPureWhite else TnpaJetBlack
+              )
+            }
+          }
+        }
+
+        if (hierarchyScrollState.value < hierarchyScrollState.maxValue - 10) {
+          Spacer(modifier = Modifier.width(4.dp))
+          IconButton(
+            onClick = {
+              hierarchyScope.launch {
+                hierarchyScrollState.animateScrollTo((hierarchyScrollState.value + 240).coerceAtMost(hierarchyScrollState.maxValue))
+              }
+            },
+            modifier = Modifier
+              .size(26.dp)
+              .clip(CircleShape)
+              .background(TnpaRedSoft)
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+              contentDescription = "More Levels",
+              tint = TnpaRedPrimary,
+              modifier = Modifier.size(15.dp)
+            )
+          }
+        }
       }
     }
 

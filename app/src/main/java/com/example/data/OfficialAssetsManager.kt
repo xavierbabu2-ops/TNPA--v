@@ -69,6 +69,18 @@ object OfficialAssetsManager {
     sharedPrefs?.edit()?.putString(KEY_PRESIDENT_URI, str)?.apply()
   }
 
+  fun setCustomPresidentPhotoUri(context: Context, uriString: String?) {
+    init(context)
+    _presidentPhotoUri.value = uriString
+    sharedPrefs?.edit()?.putString(KEY_PRESIDENT_URI, uriString)?.apply()
+  }
+
+  fun resetPresidentPhotoToDefault(context: Context) {
+    init(context)
+    _presidentPhotoUri.value = null
+    sharedPrefs?.edit()?.remove(KEY_PRESIDENT_URI)?.apply()
+  }
+
   fun setGeneralSecPhoto(uri: Uri?) {
     val str = uri?.toString()
     _generalSecPhotoUri.value = str
@@ -87,10 +99,34 @@ object OfficialAssetsManager {
     sharedPrefs?.edit()?.putString(KEY_LOGO_URI, str)?.apply()
   }
 
+  fun setCustomLogoUri(context: Context, uriString: String?) {
+    init(context)
+    _logoUri.value = uriString
+    sharedPrefs?.edit()?.putString(KEY_LOGO_URI, uriString)?.apply()
+  }
+
+  fun resetLogoToDefault(context: Context) {
+    init(context)
+    _logoUri.value = null
+    sharedPrefs?.edit()?.remove(KEY_LOGO_URI)?.apply()
+  }
+
   fun setFlag(uri: Uri?) {
     val str = uri?.toString()
     _flagUri.value = str
     sharedPrefs?.edit()?.putString(KEY_FLAG_URI, str)?.apply()
+  }
+
+  fun setCustomFlagUri(context: Context, uriString: String?) {
+    init(context)
+    _flagUri.value = uriString
+    sharedPrefs?.edit()?.putString(KEY_FLAG_URI, uriString)?.apply()
+  }
+
+  fun resetFlagToDefault(context: Context) {
+    init(context)
+    _flagUri.value = null
+    sharedPrefs?.edit()?.remove(KEY_FLAG_URI)?.apply()
   }
 
   fun setIdFrontTemplate(uri: Uri?) {
