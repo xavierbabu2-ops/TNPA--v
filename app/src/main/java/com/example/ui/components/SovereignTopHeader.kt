@@ -30,7 +30,8 @@ import com.example.ui.theme.*
 
 @Composable
 fun SovereignTopHeader(
-  onOpenSettings: () -> Unit = {}
+  onOpenSettings: () -> Unit = {},
+  onOpenHandsFreeOrb: () -> Unit = {}
 ) {
   val cognitiveStage by SovereignEngine.cognitiveStage.collectAsState()
   val provider by SovereignEngine.providerIndependence.collectAsState()
@@ -55,7 +56,8 @@ fun SovereignTopHeader(
       ) {
         // Logo & Title
         Row(
-          verticalAlignment = Alignment.CenterVertically
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.clickable { onOpenHandsFreeOrb() }
         ) {
           Box(
             modifier = Modifier
@@ -63,16 +65,16 @@ fun SovereignTopHeader(
               .clip(CircleShape)
               .background(
                 Brush.linearGradient(
-                  colors = listOf(SovereignCyan, SovereignPurple)
+                  colors = listOf(Color(0xFFFF6B00), Color(0xFFFFB703), Color(0xFFFF3300))
                 )
               )
-              .border(1.5.dp, SovereignBorderGlow, CircleShape),
+              .border(1.5.dp, Color(0xFFFFE599), CircleShape),
             contentAlignment = Alignment.Center
           ) {
             Icon(
-              imageVector = Icons.Default.AutoAwesome,
-              contentDescription = "Sovereign AI Core",
-              tint = Color.Black,
+              imageVector = Icons.Default.Mic,
+              contentDescription = "Hands-Free Voice Core",
+              tint = Color.White,
               modifier = Modifier.size(20.dp)
             )
           }
@@ -82,9 +84,9 @@ fun SovereignTopHeader(
           Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(
-                text = "பாபு (BABU)",
+                text = "ஸேவியர்பாபு (XAVIER BABU)",
                 color = SovereignTextPrimary,
-                fontSize = 15.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 0.5.sp
               )
@@ -92,20 +94,20 @@ fun SovereignTopHeader(
               Box(
                 modifier = Modifier
                   .clip(RoundedCornerShape(4.dp))
-                  .background(SovereignEmerald.copy(alpha = 0.2f))
-                  .border(1.dp, SovereignEmerald.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                  .background(Color(0xFFFF6B00).copy(alpha = 0.25f))
+                  .border(1.dp, Color(0xFFFFB703).copy(alpha = 0.6f), RoundedCornerShape(4.dp))
                   .padding(horizontal = 4.dp, vertical = 1.dp)
               ) {
                 Text(
-                  text = "SOVEREIGN AI",
-                  color = SovereignEmerald,
+                  text = "VOICE ORB",
+                  color = Color(0xFFFFB703),
                   fontSize = 8.sp,
                   fontWeight = FontWeight.Bold
                 )
               }
             }
             Text(
-              text = "தனிநபர் தன்னாட்சி AI இயங்குதளம்",
+              text = "குரல் கட்டளை கோர் (Voice-First)",
               color = SovereignTextMuted,
               fontSize = 10.sp,
               fontWeight = FontWeight.Medium
@@ -113,46 +115,24 @@ fun SovereignTopHeader(
           }
         }
 
-        // Provider Badge & Settings Trigger
+        // Provider Badge & Hands-Free / Settings Trigger
         Row(
           verticalAlignment = Alignment.CenterVertically
         ) {
-          Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = SovereignSurfaceElevated,
-            border = androidx.compose.foundation.BorderStroke(1.dp, SovereignBorder),
+          IconButton(
+            onClick = onOpenHandsFreeOrb,
             modifier = Modifier
-              .clickable { onOpenSettings() }
-              .testTag("top_provider_badge")
+              .size(34.dp)
+              .clip(CircleShape)
+              .background(Color(0xFFFF6B00).copy(alpha = 0.2f))
+              .border(1.dp, Color(0xFFFF8500), CircleShape)
           ) {
-            Row(
-              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Box(
-                modifier = Modifier
-                  .size(7.dp)
-                  .clip(CircleShape)
-                  .background(
-                    when (provider) {
-                      ProviderIndependence.LOCAL_CORE_ON_DEVICE -> SovereignEmerald
-                      ProviderIndependence.PRIVATE_HOME_SERVER -> SovereignCyan
-                      ProviderIndependence.HYBRID_OPTIONAL_CLOUD -> SovereignGold
-                    }
-                  )
-              )
-              Spacer(modifier = Modifier.width(5.dp))
-              Text(
-                text = when (provider) {
-                  ProviderIndependence.LOCAL_CORE_ON_DEVICE -> "உள் சாதனம் (Local)"
-                  ProviderIndependence.PRIVATE_HOME_SERVER -> "பிரைவேட் சர்வர்"
-                  ProviderIndependence.HYBRID_OPTIONAL_CLOUD -> "ஹைப்ரிட் கிளவுட்"
-                },
-                color = SovereignTextPrimary,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-              )
-            }
+            Icon(
+              imageVector = Icons.Default.Mic,
+              contentDescription = "Hands-Free Voice Mode",
+              tint = Color(0xFFFFB703),
+              modifier = Modifier.size(16.dp)
+            )
           }
 
           Spacer(modifier = Modifier.width(8.dp))

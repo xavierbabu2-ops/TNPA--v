@@ -39,9 +39,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SovereignMainApp() {
   var activeWorkspaceIndex by remember { mutableIntStateOf(0) }
+  var showHandsFreeOrbModal by remember { mutableStateOf(false) }
 
   val workspaces = listOf(
     WorkspaceTabItem("முழு நுண்ணறிவு", "Omni AI", Icons.Default.AutoAwesome, "tab_omni_intelligence"),
+    WorkspaceTabItem("வீடு & IoT", "IoT Hub", Icons.Default.Router, "tab_iot_hub"),
+    WorkspaceTabItem("வைஃபை லேயர்", "Wi-Fi Hub", Icons.Default.Wifi, "tab_wifi_hub"),
+    WorkspaceTabItem("ஜிபிஎஸ் ரேடார்", "GPS Radar", Icons.Default.MyLocation, "tab_gps_radar"),
     WorkspaceTabItem("விழிப்புணர்வு", "Awareness", Icons.Default.Assistant, "tab_personal_awareness"),
     WorkspaceTabItem("படைப்பாற்றல்", "Studios", Icons.Default.Palette, "tab_creative_studios"),
     WorkspaceTabItem("அறிவியல் & கணிதம்", "Science & Math", Icons.Default.Science, "tab_science_math"),
@@ -52,7 +56,8 @@ fun SovereignMainApp() {
   Scaffold(
     topBar = {
       SovereignTopHeader(
-        onOpenSettings = { activeWorkspaceIndex = 5 }
+        onOpenSettings = { activeWorkspaceIndex = 5 },
+        onOpenHandsFreeOrb = { showHandsFreeOrbModal = true }
       )
     },
     bottomBar = {
@@ -109,15 +114,30 @@ fun SovereignMainApp() {
     ) {
       when (activeWorkspaceIndex) {
         0 -> OmniIntelligenceScreen(
-          onNavigateToStudio = { activeWorkspaceIndex = 2 },
-          onNavigateToScience = { activeWorkspaceIndex = 3 },
-          onNavigateToProjects = { activeWorkspaceIndex = 4 }
+          onNavigateToStudio = { activeWorkspaceIndex = 5 },
+          onNavigateToScience = { activeWorkspaceIndex = 6 },
+          onNavigateToProjects = { activeWorkspaceIndex = 7 }
         )
-        1 -> PersonalAwarenessScreen()
-        2 -> CreativeStudiosScreen()
-        3 -> ScienceAndMathScreen()
-        4 -> ProjectInventorScreen()
-        5 -> SovereignControlScreen()
+        1 -> UniversalIoTControlHubScreen()
+        2 -> WifiIntelligenceHubScreen()
+        3 -> GlobalGpsRadarScreen()
+        4 -> PersonalAwarenessScreen()
+        5 -> CreativeStudiosScreen()
+        6 -> ScienceAndMathScreen()
+        7 -> ProjectInventorScreen()
+        8 -> SovereignControlScreen()
+      }
+    }
+  }
+
+  // Hands-Free Fiery Voice Orb Mode Modal
+  if (showHandsFreeOrbModal) {
+    androidx.compose.ui.window.Dialog(
+      onDismissRequest = { showHandsFreeOrbModal = false },
+      properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+      Box(modifier = Modifier.fillMaxSize()) {
+        HandsFreeVoiceCoreScreen(onDismiss = { showHandsFreeOrbModal = false })
       }
     }
   }
