@@ -1,67 +1,61 @@
 package com.example.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// TNPA Custom Color Schemes based on Brand Identity:
-// Primary Red (#E60000), Secondary White (#FFFFFF), Accent Black (#1A1A1A)
-
-val TnpaLightColorScheme: ColorScheme = lightColorScheme(
-  primary = TnpaRedPrimary,            // Primary Red #E60000
-  onPrimary = TnpaPureWhite,          // Secondary White #FFFFFF
-  primaryContainer = TnpaRedSoft,
-  onPrimaryContainer = TnpaRedDark,
-  secondary = TnpaPureWhite,          // Secondary White #FFFFFF
-  onSecondary = TnpaJetBlack,         // Accent Black #1A1A1A
-  secondaryContainer = TnpaOffWhite,
-  onSecondaryContainer = TnpaJetBlack,
-  tertiary = TnpaJetBlack,            // Accent Black #1A1A1A
-  onTertiary = TnpaPureWhite,
-  background = TnpaOffWhite,
-  onBackground = TnpaJetBlack,
-  surface = TnpaPureWhite,
-  onSurface = TnpaRedPrimary,         // Red typed text color
-  surfaceVariant = TnpaRedSoft,
-  onSurfaceVariant = TnpaRedDark,
-  outline = TnpaRedPrimary.copy(alpha = 0.35f),
-  outlineVariant = TnpaBlackAccent.copy(alpha = 0.15f)
+val SovereignDarkColorScheme: ColorScheme = darkColorScheme(
+  primary = SovereignCyan,
+  onPrimary = SovereignBackground,
+  primaryContainer = SovereignSurfaceElevated,
+  onPrimaryContainer = SovereignCyan,
+  secondary = SovereignPurple,
+  onSecondary = SovereignBackground,
+  secondaryContainer = SovereignSurfaceHover,
+  onSecondaryContainer = SovereignTextPrimary,
+  tertiary = SovereignGold,
+  onTertiary = SovereignBackground,
+  background = SovereignBackground,
+  onBackground = SovereignTextPrimary,
+  surface = SovereignSurface,
+  onSurface = SovereignTextPrimary,
+  surfaceVariant = SovereignSurfaceElevated,
+  onSurfaceVariant = SovereignTextSecondary,
+  outline = SovereignBorder,
+  outlineVariant = SovereignBorderGlow
 )
 
-val TnpaDarkColorScheme: ColorScheme = darkColorScheme(
-  primary = TnpaRedLight,             // Bright Red on Dark
-  onPrimary = TnpaPureWhite,
-  primaryContainer = TnpaRedDark,
-  onPrimaryContainer = TnpaPureWhite,
-  secondary = TnpaPureWhite,          // Secondary White #FFFFFF
-  onSecondary = TnpaJetBlack,
-  secondaryContainer = TnpaDarkCard,
-  onSecondaryContainer = TnpaPureWhite,
-  tertiary = TnpaJetBlack,            // Accent Black #1A1A1A
-  onTertiary = TnpaPureWhite,
-  background = TnpaJetBlack,          // Accent Black #1A1A1A
-  onBackground = TnpaPureWhite,
-  surface = TnpaDarkCard,
-  onSurface = TnpaRedLight,           // Red typed text color
-  surfaceVariant = TnpaBlackAccent,
-  onSurfaceVariant = TnpaRedSoft,
-  outline = TnpaRedPrimary,
-  outlineVariant = TnpaCharcoal
+val SovereignLightColorScheme: ColorScheme = lightColorScheme(
+  primary = SovereignSky,
+  onPrimary = Color.White,
+  primaryContainer = Color(0xFFE0F2FE),
+  onPrimaryContainer = Color(0xFF0369A1),
+  secondary = SovereignPurple,
+  onSecondary = Color.White,
+  secondaryContainer = Color(0xFFF3E8FF),
+  onSecondaryContainer = Color(0xFF6B21A8),
+  tertiary = SovereignGold,
+  onTertiary = Color.White,
+  background = Color(0xFFF8FAFC),
+  onBackground = Color(0xFF0F172A),
+  surface = Color.White,
+  onSurface = Color(0xFF0F172A),
+  surfaceVariant = Color(0xFFF1F5F9),
+  onSurfaceVariant = Color(0xFF475569),
+  outline = Color(0xFFCBD5E1),
+  outlineVariant = SovereignSky
 )
 
 @Composable
-fun TnpaTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
+fun SovereignTheme(
+  darkTheme: Boolean = true, // Default to deep space futuristic dark theme
   content: @Composable () -> Unit
 ) {
-  val colorScheme = if (darkTheme) TnpaDarkColorScheme else TnpaLightColorScheme
+  val colorScheme = if (darkTheme) SovereignDarkColorScheme else SovereignLightColorScheme
   MaterialTheme(
     colorScheme = colorScheme,
     typography = Typography,
@@ -70,12 +64,21 @@ fun TnpaTheme(
 }
 
 @Composable
+fun TnpaTheme(
+  darkTheme: Boolean = isSystemInDarkTheme(),
+  content: @Composable () -> Unit
+) {
+  SovereignTheme(darkTheme = true, content = content)
+}
+
+@Composable
 fun MyApplicationTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicColor: Boolean = false,
   content: @Composable () -> Unit,
 ) {
-  TnpaTheme(darkTheme = darkTheme, content = content)
+  SovereignTheme(darkTheme = true, content = content)
 }
+
 
 

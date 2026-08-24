@@ -1,7 +1,8 @@
 {
-  "name": "TNPA",
-  "description": "TNPA - Tamil Nadu Painters and Artists Welfare Association official administration dashboard, member registration, leadership hierarchy, welfare schemes, art gallery, live streaming, and APK download hub.",
+  "name": "பாபு (Babu)",
+  "description": "பாபு (Babu) - தனிநபர் தன்னாட்சி AI இயங்குதளம் (Personal Sovereign AI Platform). Multimodal Creation, Scientific Reasoning, Quantum Brain, Holographic Simulation, Evidence Engine & Private Autonomous Control.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
+
 

@@ -12,19 +12,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
-import com.example.ui.theme.TnpaJetBlack
-import com.example.ui.theme.TnpaOffWhite
-import com.example.ui.theme.TnpaPureWhite
-import com.example.ui.theme.TnpaRedDark
-import com.example.ui.theme.TnpaRedLight
-import com.example.ui.theme.TnpaRedPrimary
+import com.example.ui.theme.*
 
 /**
- * Artistic Red & White Wallpaper with paint brush strokes and black accents.
- * Designed for "தமிழ்நாடு பெயிண்டர்கள் ஓவியர்கள் முன்னேற்ற சங்கம்"
+ * Cybernetic Deep-Space Holographic Wallpaper for பாபு (Babu - Personal Sovereign AI)
  */
 @Composable
-fun RedWhitePainterWallpaper(
+fun BabuCyberGridWallpaper(
   modifier: Modifier = Modifier,
   content: @Composable BoxScope.() -> Unit
 ) {
@@ -34,91 +28,68 @@ fun RedWhitePainterWallpaper(
       .background(
         Brush.verticalGradient(
           colors = listOf(
-            TnpaPureWhite,
-            Color(0xFFFFF1F2), // Soft Rose White
-            TnpaOffWhite,
-            Color(0xFFFFE4E6),
-            TnpaPureWhite
+            SovereignBackground,
+            SovereignSurface,
+            SovereignBackground
           )
         )
       )
   ) {
-    // Dynamic Artistic Canvas with Paint Splatters & Brush Strokes in Red, White and Black
     Canvas(modifier = Modifier.fillMaxSize()) {
       val w = size.width
       val h = size.height
 
-      // Top-Right Crimson Brush Wave
+      // Top-Right Cyan Quantum Wave
       val pathTop = Path().apply {
-        moveTo(w * 0.4f, 0f)
-        cubicTo(w * 0.7f, h * 0.05f, w * 0.6f, h * 0.15f, w, h * 0.12f)
+        moveTo(w * 0.3f, 0f)
+        cubicTo(w * 0.6f, h * 0.05f, w * 0.7f, h * 0.15f, w, h * 0.10f)
         lineTo(w, 0f)
         close()
       }
       drawPath(
         path = pathTop,
         brush = Brush.linearGradient(
-          colors = listOf(TnpaRedPrimary.copy(alpha = 0.08f), TnpaRedDark.copy(alpha = 0.15f)),
-          start = Offset(w * 0.4f, 0f),
-          end = Offset(w, h * 0.12f)
+          colors = listOf(SovereignCyan.copy(alpha = 0.08f), SovereignViolet.copy(alpha = 0.04f)),
+          start = Offset(w * 0.3f, 0f),
+          end = Offset(w, h * 0.10f)
         ),
         style = Fill
       )
 
-      // Center Diagonal Painter Texture Wave
-      val pathMid = Path().apply {
-        moveTo(0f, h * 0.35f)
-        cubicTo(w * 0.3f, h * 0.32f, w * 0.7f, h * 0.42f, w, h * 0.38f)
-        lineTo(w, h * 0.44f)
-        cubicTo(w * 0.6f, h * 0.48f, w * 0.2f, h * 0.40f, 0f, h * 0.42f)
-        close()
-      }
-      drawPath(
-        path = pathMid,
-        brush = Brush.horizontalGradient(
-          colors = listOf(
-            TnpaRedLight.copy(alpha = 0.05f),
-            TnpaPureWhite.copy(alpha = 0.4f),
-            TnpaRedPrimary.copy(alpha = 0.08f)
-          )
-        )
-      )
-
-      // Bottom-Left Scarlet Paint Splash Curve
+      // Bottom-Left Purple Nebula Wave
       val pathBottom = Path().apply {
-        moveTo(0f, h * 0.78f)
-        cubicTo(w * 0.35f, h * 0.82f, w * 0.45f, h * 0.95f, w * 0.8f, h)
+        moveTo(0f, h * 0.85f)
+        cubicTo(w * 0.3f, h * 0.82f, w * 0.5f, h * 0.95f, w * 0.8f, h)
         lineTo(0f, h)
         close()
       }
       drawPath(
         path = pathBottom,
         brush = Brush.linearGradient(
-          colors = listOf(TnpaRedPrimary.copy(alpha = 0.07f), TnpaJetBlack.copy(alpha = 0.04f)),
-          start = Offset(0f, h * 0.78f),
+          colors = listOf(SovereignPurple.copy(alpha = 0.06f), SovereignCyan.copy(alpha = 0.02f)),
+          start = Offset(0f, h * 0.85f),
           end = Offset(w * 0.8f, h)
         )
       )
 
-      // Decorative Artist Paint Droplets (Red, Gold & Black subtle accents)
+      // Quantum Energy Nodes
       drawCircle(
-        color = TnpaRedPrimary.copy(alpha = 0.12f),
-        radius = 16f,
-        center = Offset(w * 0.88f, h * 0.22f)
+        color = SovereignCyan.copy(alpha = 0.08f),
+        radius = 14f,
+        center = Offset(w * 0.88f, h * 0.18f)
       )
       drawCircle(
-        color = TnpaJetBlack.copy(alpha = 0.06f),
-        radius = 9f,
-        center = Offset(w * 0.92f, h * 0.25f)
+        color = SovereignPurple.copy(alpha = 0.06f),
+        radius = 8f,
+        center = Offset(w * 0.92f, h * 0.22f)
       )
       drawCircle(
-        color = TnpaRedDark.copy(alpha = 0.09f),
-        radius = 22f,
-        center = Offset(w * 0.08f, h * 0.62f)
+        color = SovereignEmerald.copy(alpha = 0.06f),
+        radius = 12f,
+        center = Offset(w * 0.08f, h * 0.65f)
       )
     }
 
-    // Main App Content Layer
     content()
   }
 }
